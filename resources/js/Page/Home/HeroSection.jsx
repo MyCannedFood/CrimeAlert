@@ -1,4 +1,47 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
 export default function HeroSection() {
+    const [userCity, setUserCity] = useState('Mendeteksi lokasi...');
+
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            setUserCity('Lokasi tidak tersedia');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10&addressdetails=1`,
+                        {
+                            headers: {
+                                'Accept-Language': 'id-ID',
+                            },
+                        }
+                    );
+                    const data = await response.json();
+                    const detectedCity =
+                        data?.address?.city ||
+                        data?.address?.town ||
+                        data?.address?.village ||
+                        data?.address?.suburb ||
+                        data?.address?.city_district ||
+                        'Lokasi tidak tersedia';
+
+                    setUserCity(detectedCity);
+                } catch (error) {
+                    setUserCity('Lokasi tidak tersedia');
+                }
+            },
+            () => {
+                setUserCity('Lokasi tidak tersedia');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    }, []);
+
     const stats = [
         {
             label: 'Laporan Hari Ini',
@@ -247,9 +290,9 @@ export default function HeroSection() {
                             <circle cx="12" cy="10" r="3" />
                         </svg>
                         <span>Lokasi Anda :</span>
-                        <strong style={{ color: '#0F172A' }}>Jakarta Barat</strong>
-                        <a
-                            href="#"
+                        <strong style={{ color: '#0F172A' }}>{userCity}</strong>
+                        <Link
+                            to="/map"
                             style={{
                                 color: '#2563EB',
                                 fontWeight: 600,
@@ -257,7 +300,7 @@ export default function HeroSection() {
                             }}
                         >
                             Lihat di peta&nbsp;→
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
