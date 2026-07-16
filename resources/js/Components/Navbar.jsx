@@ -242,69 +242,26 @@ export default function Navbar() {
                                 </svg>
                             )}
                         </button>
-                        {user ? (
-                            <button
-                                onClick={handleAuthClick}
-                                disabled={authLoading}
-                                style={{
-                                    textDecoration: 'none',
-                                    color: 'var(--color-text)',
-                                    fontWeight: 600,
-                                    fontSize: '0.9rem',
-                                    padding: '0.6rem 1rem',
-                                    borderRadius: '999px',
-                                    border: '1px solid var(--color-border)',
-                                    background: 'var(--color-bg-card)',
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                {authLoading ? '...' : 'Keluar'}
-                            </button>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={handleAuthClick}
-                                    disabled={authLoading}
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: 'var(--color-text)',
-                                        fontWeight: 600,
-                                        fontSize: '0.9rem',
-                                        padding: '0.6rem 1rem',
-                                        borderRadius: '999px',
-                                        border: 'none',
-                                        background: 'transparent',
-                                        cursor: 'pointer',
-                                        whiteSpace: 'nowrap',
-                                        transition: 'all 0.2s ease',
-                                    }}
-                                >
-                                    {authLoading ? '...' : 'Masuk'}
-                                </button>
-                                <button
-                                    onClick={handleAuthClick}
-                                    disabled={authLoading}
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: '#ffffff',
-                                        fontWeight: 700,
-                                        fontSize: '0.9rem',
-                                        padding: '0.62rem 1.15rem',
-                                        borderRadius: '999px',
-                                        border: 'none',
-                                        background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
-                                        boxShadow: '0 10px 24px rgba(37, 99, 235, 0.24)',
-                                        whiteSpace: 'nowrap',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                    }}
-                                >
-                                    {authLoading ? '...' : 'Daftar'}
-                                </button>
-                            </>
-                        )}
+                        <button
+                            onClick={handleAuthClick}
+                            disabled={authLoading}
+                            style={{
+                                textDecoration: 'none',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                padding: '0.62rem 1.15rem',
+                                borderRadius: '999px',
+                                color: user ? 'var(--color-text)' : '#ffffff',
+                                background: user ? 'var(--color-bg-card)' : 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                                border: user ? '1px solid var(--color-border)' : 'none',
+                                boxShadow: user ? 'none' : '0 10px 24px rgba(37, 99, 235, 0.24)',
+                                whiteSpace: 'nowrap',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            {authLoading ? '...' : (user ? 'Keluar' : 'Masuk')}
+                        </button>
                     </div>
 
                     <button
@@ -437,7 +394,7 @@ export default function Navbar() {
                                 fontSize: '0.9rem',
                             }}
                         >
-                            {authLoading ? '...' : (user ? 'Keluar' : 'Masuk / Daftar')}
+                            {authLoading ? '...' : (user ? 'Keluar' : 'Masuk')}
                         </button>
                     </div>
                 </div>
@@ -463,9 +420,6 @@ export default function Navbar() {
                     .navbar-logo {
                         margin-left: -1.5rem;
                     }
-                }
-                .navbar-auth-buttons button:first-child:hover {
-                    background: #f1f5f9;
                 }
                 .navbar-auth-buttons button:last-child:hover {
                     box-shadow: 0 14px 28px rgba(37, 99, 235, 0.32);
