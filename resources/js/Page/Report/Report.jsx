@@ -6,12 +6,14 @@ import {
     Sparkles, 
     Filter, 
     ShieldAlert,
-    MessageSquareDashed 
+    MessageSquareDashed,
+    LogIn 
 } from 'lucide-react';
 import Footer from '../../Components/Footer';
 import ReportCard from './ReportCard';
 import CreateReportModal from './CreateReportModal';
 import { api } from '../../utils/api';
+import { supabase } from '../../utils/supabase';
 
 const SAMPLE_REPORTS = [
     {
@@ -60,8 +62,40 @@ export default function Report() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedProvince, setSelectedProvince] = useState('');
-    const [sort, setSort] = useState('new'); // 'new' | 'top'
+    const [sort, setSort] = useState('new');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [authAlert, setAuthAlert] = useState('');
+
+    useEffect(() => {
+        if (!supabase) return;
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
+        });
+        const { data: authData } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+        return () => authData?.subscription.unsubscribe();
+    }, []);
+
+    const requireAuth = () => {
+        if (!supabase) {
+            setAuthAlert('Autentikasi tidak tersedia saat ini.');
+            return false;
+        }
+        if (!user) {
+            setAuthAlert('Silakan masuk terlebih dahulu untuk membuat laporan.');
+            return false;
+        }
+        return true;
+    };
+
+    const openCreateModal = () => {
+        setAuthAlert('');
+        if (requireAuth()) {
+            setIsModalOpen(true);
+        }
+    };
 
     const loadReports = async () => {
         setLoading(true);
@@ -145,7 +179,7 @@ export default function Report() {
                     </div>
 
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={openCreateModal}
                         className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold text-sm rounded-lg shadow-sm transition-all cursor-pointer border border-transparent"
                     >
                         <Plus className="w-4 h-4" />
@@ -215,6 +249,20 @@ export default function Report() {
                     </div>
                 </div>
 
+                {/* Auth Alert */}
+                {authAlert && (
+                    <div className="mb-4 flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 rounded-xl text-amber-800 dark:text-amber-300 text-sm font-medium transition-colors duration-300">
+                        <LogIn className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <span className="flex-1">{authAlert}</span>
+                        <button
+                            onClick={() => setAuthAlert('')}
+                            className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-200 p-1 rounded-lg transition-colors cursor-pointer"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                )}
+
                 {/* List of Reports */}
                 <div className="space-y-3">
                     {loading && Array.from({ length: 3 }).map((_, i) => (
@@ -233,7 +281,7 @@ export default function Report() {
                                 Tidak ada laporan yang sesuai dengan pencarian Anda. Silakan laporkan kejadian baru jika ada insiden di sekitar Anda.
                             </p>
                             <button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={openCreateModal}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-lg hover:bg-blue-700 transition-colors shadow-xs cursor-pointer"
                             >
                                 <Plus className="w-3.5 h-3.5" />

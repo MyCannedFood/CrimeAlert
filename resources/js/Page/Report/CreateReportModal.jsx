@@ -73,7 +73,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs transition-colors duration-300">
-            <div className="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full p-6 shadow-xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto transition-colors duration-300">
+            <div className="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full p-6 shadow-xl border border-slate-200 dark:border-slate-800 transition-colors duration-300">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <FileText className="w-5 h-5 text-blue-600 dark:text-blue-500" />
