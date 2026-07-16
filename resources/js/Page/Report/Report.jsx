@@ -77,12 +77,27 @@ export default function Report() {
 
     const handleCreateReport = async (newReportData) => {
         try {
-            const created = await api.reports.create(newReportData);
+            // Payload minimal yang paling aman untuk insert.
+            // Hindari field yang sering beda nama/constraint dengan schema Supabase.
+            const payload = {
+                title: newReportData?.title,
+                description: newReportData?.description,
+                category: newReportData?.category ?? null,
+                province: newReportData?.province ?? null,
+                city: newReportData?.city ?? null,
+                username: newReportData?.username ?? 'Anonim',
+                image_url: newReportData?.image_url ?? null,
+            };
+
+            const created = await api.reports.create(payload);
             if (created) {
                 setReports((prev) => [created, ...prev]);
+            } else {
+                setAuthAlert('Gagal menambahkan laporan. (Respon kosong)');
             }
-        } catch {
-            // silently fail — error logged by api
+        } catch (err) {
+            console.error('Create report failed:', err);
+            setAuthAlert(err?.message || 'Gagal menambahkan laporan. Coba lagi.');
         }
     };
 
@@ -251,6 +266,7 @@ export default function Report() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleCreateReport}
+                user={user}
             />
 
             <Footer />
