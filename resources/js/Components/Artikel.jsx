@@ -214,10 +214,10 @@ function RelatedCard({ item, onSelect }) {
         >
           {crimeLabel(item.crime_type)}
         </span>
-        <h5 className="line-clamp-2 text-[13px] font-bold leading-snug" style={{ color: COLORS.text }}>
+        <h5 className="line-clamp-2 text-[13px] font-bold leading-snug" style={{ color: "var(--color-text)" }}>
           {item.title}
         </h5>
-        <span className="mt-1 block text-[11px]" style={{ color: COLORS.textSec }}>
+        <span className="mt-1 block text-[11px]" style={{ color: "var(--color-text-secondary)" }}>
           {formatDate(item.published)}
         </span>
       </div>
@@ -245,22 +245,22 @@ export default function Artikel({
   const location = [titleCase(article.city), article.province].filter(Boolean).join(", ");
 
   return (
-    <div style={{ minHeight: "100vh", background: COLORS.bg, fontFamily: "'Poppins', system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "var(--color-bg)", fontFamily: "'Poppins', system-ui, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');`}</style>
 
       {/* slim breadcrumb bar */}
-      <div className="bg-white" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
-        <div className="mx-auto flex max-w-[1240px] items-center gap-1.5 px-6 py-4 text-[13px]" style={{ color: COLORS.textSec }}>
-          <span>Beranda</span>
-          <ChevronRight className="h-3.5 w-3.5" style={{ color: "#CBD5E1" }} />
+      <div className="bg-[var(--color-bg-card)]" style={{ borderBottom: `1px solid var(--color-border)` }}>
+        <div className="mx-auto flex max-w-[1240px] items-center gap-1.5 px-6 py-4 text-[13px]" style={{ color: "var(--color-text-secondary)" }}>
+          <span style={{ color: "var(--color-text-secondary)" }}>Beranda</span>
+          <ChevronRight className="h-3.5 w-3.5" style={{ color: "var(--color-text-muted)" }} />
           <span>Berita</span>
-          <ChevronRight className="h-3.5 w-3.5" style={{ color: "#CBD5E1" }} />
-          <span style={{ color: COLORS.text, fontWeight: 600 }}>{crimeLabel(article.crime_type)}</span>
+          <ChevronRight className="h-3.5 w-3.5" style={{ color: "var(--color-text-muted)" }} />
+          <span style={{ color: "var(--color-text)", fontWeight: 600 }}>{crimeLabel(article.crime_type)}</span>
         </div>
       </div>
 
       <div className="mx-auto max-w-[1240px] px-6 py-10">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px] dark:text-[var(--color-text)]">
           {/* main column */}
           <div className="min-w-0">
             <CoverImage
@@ -280,11 +280,11 @@ export default function Artikel({
               </span>
             </div>
 
-            <h1 className="text-[28px] font-bold leading-tight md:text-[34px]" style={{ color: COLORS.text }}>
+            <h1 className="text-[28px] font-bold leading-tight md:text-[34px]" style={{ color: "var(--color-text)" }}>
               {article.title}
             </h1>
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-b pb-6 text-[13px]" style={{ borderColor: COLORS.border, color: COLORS.textSec }}>
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-b pb-6 text-[13px]" style={{ borderColor: "var(--color-border)", color: "var(--color-text-secondary)" }}>
               <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />{formatDate(article.published)}</span>
               {location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{location}</span>}
               <span className="flex items-center gap-1.5"><Newspaper className="h-4 w-4" />Sumber: {article.source}</span>
@@ -293,12 +293,12 @@ export default function Artikel({
             <div className="mt-6 space-y-4">
               {paragraphs.length > 0 ? (
                 paragraphs.map((p, i) => (
-                  <p key={i} className="text-[15.5px] leading-relaxed" style={{ color: "#334155" }}>
+                  <p key={i} className="text-[15.5px] leading-relaxed" style={{ color: "var(--color-text)" }}>
                     {p}
                   </p>
                 ))
               ) : (
-                <p className="text-[15px] italic" style={{ color: COLORS.textSec }}>
+                <p className="text-[15px] italic" style={{ color: "var(--color-text-secondary)" }}>
                   Ringkasan belum tersedia untuk artikel ini.
                 </p>
               )}
@@ -309,17 +309,17 @@ export default function Artikel({
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-8 flex items-center gap-4 rounded-xl p-5 no-underline transition-colors hover:bg-slate-50"
-              style={{ border: `1px solid ${COLORS.border}`, background: "#fff" }}
+              className="mt-8 flex items-center gap-4 rounded-xl p-5 no-underline transition-colors hover:bg-slate-50 dark:hover:bg-[#0a0f1e]"
+              style={{ border: `1px solid var(--color-border)`, background: "var(--color-bg-card)" }}
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg" style={{ background: COLORS.primary50, color: COLORS.primary }}>
                 <Newspaper className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-bold" style={{ color: COLORS.text }}>
+                <span className="block text-[14px] font-bold" style={{ color: "var(--color-text)" }}>
                   Baca artikel asli di {article.source}
                 </span>
-                <span className="block truncate text-[12.5px]" style={{ color: COLORS.textSec }}>
+                <span className="block truncate text-[12.5px]" style={{ color: "var(--color-text-secondary)" }}>
                   {article.url}
                 </span>
               </span>
@@ -334,15 +334,15 @@ export default function Artikel({
 
           {/* sidebar — related articles */}
           <aside>
-            <div className="rounded-xl p-4" style={{ background: "#fff", border: `1px solid ${COLORS.border}` }}>
-              <h3 className="mb-2 px-1 text-[14.5px] font-bold" style={{ color: COLORS.text }}>
+            <div className="rounded-xl p-4" style={{ background: "var(--color-bg-card)", border: `1px solid var(--color-border)` }}>
+              <h3 className="mb-2 px-1 text-[14.5px] font-bold" style={{ color: "var(--color-text)" }}>
                 Berita Terkait
               </h3>
               <div className="flex flex-col">
                 {related.length > 0 ? (
                   related.map((item) => <RelatedCard key={item.id} item={item} onSelect={onSelectRelated} />)
                 ) : (
-                  <p className="px-1 py-3 text-[13px]" style={{ color: COLORS.textSec }}>
+                  <p className="px-1 py-3 text-[13px]" style={{ color: "var(--color-text-secondary)" }}>
                     Belum ada berita terkait.
                   </p>
                 )}

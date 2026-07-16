@@ -134,11 +134,24 @@ export default function News() {
                         </div>
                     )}
                     {pageItems.map((item) => (
-                        <div key={item.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col rounded-none shadow-sm">
+                        <a
+                            key={item.id}
+                            href={`/berita/${item.id}`}
+                            className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col rounded-none shadow-sm no-underline"
+                            style={{ color: 'inherit' }}
+                        >
                             <div className="bg-[#9CA3AF] dark:bg-slate-700 h-56 w-full relative">
                                 <div className="absolute bottom-0 left-0 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-[#64748B] dark:text-slate-300">
                                     {item.category}
                                 </div>
+                                {item.image_url ? (
+                                    <img
+                                        src={item.image_url}
+                                        alt={item.title}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                    />
+                                ) : null}
                             </div>
                             <div className="p-5 flex flex-col flex-grow">
                                 <h3 className="font-bold text-[17px] leading-snug mb-6 text-gray-900 dark:text-slate-100">
@@ -149,7 +162,7 @@ export default function News() {
                                     <span>{timeAgo(item.date)}</span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     ))}
                 </div>
 
