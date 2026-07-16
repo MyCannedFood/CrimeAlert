@@ -20,6 +20,7 @@ export default function Navbar() {
     const [user, setUser] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [authError, setAuthError] = useState('');
+    const [lang, setLang] = useState('id');
 
     useEffect(() => {
         let mounted = true;
@@ -49,6 +50,98 @@ export default function Navbar() {
         return () => { mounted = false; cleanup(); };
     }, [navigate]);
 
+    useEffect(() => {
+        const readLangFromCookie = () => {
+            const match = document.cookie.match(/googtrans=\/id\/([a-zA-Z-]+)/);
+            if (match && match[1] && match[1] !== 'id') {
+                setLang('en');
+            } else {
+                setLang('id');
+            }
+        };
+
+        readLangFromCookie();
+
+        if (document.getElementById('google-translate-script')) return;
+
+        window.googleTranslateElementInit = () => {
+            // eslint-disable-next-line no-undef
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'id',
+                    includedLanguages: 'id,en',
+                    autoDisplay: false,
+                },
+                'google_translate_element'
+            );
+        };
+
+        const script = document.createElement('script');
+        script.id = 'google-translate-script';
+        script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
+
+    useEffect(() => {
+        const forceHideBanner = () => {
+            document.body.style.setProperty('top', '0px', 'important');
+            document.body.classList.remove('translated-ltr', 'translated-rtl');
+            document.documentElement.style.setProperty('top', '0px', 'important');
+
+            const selectors = [
+                'iframe.goog-te-banner-frame',
+                '.goog-te-banner-frame',
+            ];
+            document.querySelectorAll(selectors.join(',')).forEach((el) => {
+                el.style.setProperty('visibility', 'hidden', 'important');
+                el.style.setProperty('height', '0px', 'important');
+                el.style.setProperty('opacity', '0', 'important');
+                el.style.setProperty('pointer-events', 'none', 'important');
+                el.style.setProperty('position', 'fixed', 'important');
+                el.style.setProperty('top', '-500px', 'important');
+            });
+        };
+
+        forceHideBanner();
+        const interval = setInterval(forceHideBanner, 200);
+
+        const observer = new MutationObserver(forceHideBanner);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style', 'class'],
+            childList: true,
+            subtree: true,
+        });
+
+        return () => {
+            clearInterval(interval);
+            observer.disconnect();
+        };
+    }, []);
+
+    const setGoogTransCookie = (value) => {
+        const domain = window.location.hostname;
+        document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+        document.cookie = `googtrans=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
+
+        document.cookie = `googtrans=${value};path=/`;
+        document.cookie = `googtrans=${value};path=/;domain=${domain}`;
+    };
+
+    const toggleTranslate = () => {
+        const nextLang = lang === 'id' ? 'en' : 'id';
+
+        if (nextLang === 'id') {
+            setGoogTransCookie('/id/id');
+        } else {
+            setGoogTransCookie(`/id/${nextLang}`);
+        }
+
+        setLang(nextLang);
+        window.location.reload();
+    };
+
     const handleAuthClick = async () => {
         if (authLoading) return;
 
@@ -67,7 +160,6 @@ export default function Navbar() {
         setAuthError('');
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            // redirectTo harus kembali ke halaman yang sedang kamu buka
             options: { redirectTo: `${window.location.origin}${location.pathname}` },
         });
 
@@ -97,6 +189,8 @@ export default function Navbar() {
                 boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)',
             }}
         >
+            <div id="google_translate_element" style={{ display: 'none' }} />
+
             <div
                 className="navbar-container"
                 style={{
@@ -213,6 +307,38 @@ export default function Navbar() {
                             gap: '0.6rem',
                         }}
                     >
+                        <button
+                            onClick={toggleTranslate}
+                            aria-label="Toggle translate"
+                            title={lang === 'id' ? 'Translate to English' : 'Kembali ke Bahasa Indonesia'}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.3rem',
+                                height: '36px',
+                                padding: '0 0.7rem',
+                                borderRadius: '999px',
+                                border: '1px solid var(--color-border)',
+                                background: 'var(--color-bg)',
+                                cursor: 'pointer',
+                                color: 'var(--color-text-secondary)',
+                                fontWeight: 700,
+                                fontSize: '0.8rem',
+                                transition: 'all 0.2s ease',
+                                flexShrink: 0,
+                            }}
+                        >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 8l6 6" />
+                                <path d="M4 14l6-6 2-3" />
+                                <path d="M2 5h12" />
+                                <path d="M7 2h1" />
+                                <path d="M22 22l-5-10-5 10" />
+                                <path d="M14 18h6" />
+                            </svg>
+                            {lang === 'id' ? 'EN' : 'ID'}
+                        </button>
                         <button
                             onClick={toggle}
                             aria-label="Toggle dark mode"
@@ -341,12 +467,41 @@ export default function Navbar() {
                     <div
                         style={{
                             display: 'flex',
+                            flexWrap: 'wrap',
                             gap: '0.5rem',
                             marginTop: '0.4rem',
                             paddingTop: '0.6rem',
                             borderTop: '1px solid var(--color-border)',
                         }}
                     >
+                        <button
+                            onClick={toggleTranslate}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem',
+                                flex: '1 1 100%',
+                                color: 'var(--color-text)',
+                                fontWeight: 700,
+                                padding: '0.7rem 0.85rem',
+                                borderRadius: '12px',
+                                background: 'var(--color-bg-card)',
+                                border: '1px solid var(--color-border)',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 8l6 6" />
+                                <path d="M4 14l6-6 2-3" />
+                                <path d="M2 5h12" />
+                                <path d="M7 2h1" />
+                                <path d="M22 22l-5-10-5 10" />
+                                <path d="M14 18h6" />
+                            </svg>
+                            {lang === 'id' ? 'Translate to English' : 'Kembali ke Bahasa Indonesia'}
+                        </button>
                         <button
                             onClick={toggle}
                             style={{
@@ -425,6 +580,44 @@ export default function Navbar() {
                 .navbar-auth-buttons button:last-child:hover {
                     box-shadow: 0 14px 28px rgba(37, 99, 235, 0.32);
                     transform: translateY(-1px);
+                }
+
+                /* Sembunyikan banner bawaan Google Translate agar tidak mendorong layout
+                   (visibility, bukan display:none, supaya proses translate tidak terganggu) */
+                .goog-te-banner-frame,
+                .goog-te-banner-frame.skiptranslate,
+                iframe.goog-te-banner-frame {
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                    position: fixed !important;
+                    top: -500px !important;
+                }
+                html,
+                body,
+                html.translated-ltr,
+                body.translated-ltr,
+                html.translated-rtl,
+                body.translated-rtl {
+                    top: 0 !important;
+                    position: static !important;
+                }
+                #google_translate_element {
+                    display: none !important;
+                }
+                .goog-tooltip,
+                .goog-tooltip:hover {
+                    display: none !important;
+                }
+                .goog-text-highlight {
+                    background: none !important;
+                    box-shadow: none !important;
+                }
+                /* Sembunyikan ikon "Google Translate" mengambang yang kadang muncul */
+                .skiptranslate iframe {
+                    visibility: hidden !important;
+                    height: 0 !important;
                 }
             `}</style>
         </nav>
