@@ -6,6 +6,7 @@ import Home from './Page/Home/Home';
 import MapPage from './Page/Map/Map';
 import News from './Page/News/News';
 import Statistics from './Page/Statistics/Statistics';
+import About from './Page/About/About';
 
 function App() {
     return (
@@ -16,10 +17,12 @@ function App() {
                 <Route path="/map" element={<MapPage />} />
                 <Route path="/news" element={<News />} />
                 <Route path="/statistik" element={<Statistics />} />
+                <Route path="/tentang" element={<About />} />
             </Routes>
         </BrowserRouter>
     );
 }
+
 
 const rootElement = document.getElementById('root');
 
