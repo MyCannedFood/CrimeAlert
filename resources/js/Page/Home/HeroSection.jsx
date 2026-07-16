@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
+import { useCrimeLocation } from '../../utils/CrimeLocationContext';
 
 export default function HeroSection() {
     const navigate = useNavigate();
-    const [userCity, setUserCity] = useState('Mendeteksi lokasi...');
-    const [userLocation, setUserLocation] = useState(null);
+    const { location: savedLocation, setLocation: setSavedLocation } = useCrimeLocation();
+    const [userCity, setUserCity] = useState(savedLocation?.city || 'Mendeteksi lokasi...');
+    const [userLocation, setUserLocation] = useState(savedLocation || null);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
+
 
     useEffect(() => {
         if (!navigator.geolocation) {
@@ -36,17 +39,21 @@ export default function HeroSection() {
                         'Lokasi tidak tersedia';
 
                     setUserCity(detectedCity);
-                    setUserLocation({
+                    const nextLocation = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
                         city: detectedCity,
-                    });
+                    };
+                    setUserLocation(nextLocation);
+                    setSavedLocation(nextLocation);
                 } catch (error) {
                     setUserCity('Lokasi tidak tersedia');
                 }
             },
             () => {
                 setUserCity('Lokasi tidak tersedia');
+                setUserLocation(null);
+                setSavedLocation(null);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );

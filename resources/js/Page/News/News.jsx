@@ -24,7 +24,7 @@ export default function News() {
     const [activePage, setActivePage] = useState(1);
 
     useEffect(() => {
-        api.crimes.list()
+        api.crimes.latest(ITEMS_PER_PAGE * 50)
             .then((data) => setItems(data || []))
             .catch(() => setItems([]))
             .finally(() => setLoading(false))

@@ -74,11 +74,25 @@ export const api = {
     },
     latest: async (limit = 20) => {
       if (!supabase) return []
-      const { data, error } = await supabase.from('crime_articles')
-        .select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary')
+
+      // Prefer ordering by `published` (semantic time of incident).
+      // If your scraper/table only fills a date (no time), `published`
+      // may not be precise. If you have `created_at` in Supabase, you can
+      // switch ordering to that field.
+      const { data, error } = await supabase
+        .from('crime_articles')
+        .select(
+          'id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary'
+        )
+        // Primary: semantic incident time.
         .order('published', { ascending: false })
         .limit(limit)
-      if (error) { console.error(error); return [] }
+
+      if (error) {
+        console.error(error)
+        return []
+      }
+
       return (data || []).map(mapArticle)
     },
   },

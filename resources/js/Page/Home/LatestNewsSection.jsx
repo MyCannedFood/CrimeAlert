@@ -23,8 +23,15 @@ export default function LatestNewsSection() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        api.crimes.list({ per_page: 5 })
-            .then((data) => setItems(data || []))
+        api.crimes.latest(5)
+            .then((data) => {
+                const sorted = (data || []).slice().sort((a, b) => {
+                    const ad = new Date(a.published || a.date || 0).getTime()
+                    const bd = new Date(b.published || b.date || 0).getTime()
+                    return bd - ad
+                })
+                setItems(sorted)
+            })
             .catch(() => setItems([]))
             .finally(() => setLoading(false))
     }, []);

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '../../utils/api';
+import { useCrimeLocation } from '../../utils/CrimeLocationContext';
 
 const ITEMS_PER_PAGE = 8;
 
@@ -41,6 +42,7 @@ export default function NearestNewsSection() {
     const [activePage, setActivePage] = useState(1);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { location: savedLocation } = useCrimeLocation();
 
     useEffect(() => {
         api.crimes.list()
@@ -49,9 +51,37 @@ export default function NearestNewsSection() {
             .finally(() => setLoading(false));
     }, []);
 
-    const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+    const crimesWithDistance = useMemo(() => {
+        if (!savedLocation?.lat || !savedLocation?.lng) return items;
+        const toRad = (v) => (v * Math.PI) / 180;
+        const haversineKm = (lat1, lon1, lat2, lon2) => {
+            const R = 6371;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        };
+
+        return (items || [])
+            .map((it) => {
+                const lat = Number(it.latitude);
+                const lng = Number(it.longitude);
+                const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+                const distKm = hasCoords ? haversineKm(savedLocation.lat, savedLocation.lng, lat, lng) : Number.POSITIVE_INFINITY;
+                return { ...it, _distKm: distKm };
+            })
+            .sort((a, b) => a._distKm - b._distKm);
+    }, [items, savedLocation]);
+
+    const nearestItems = crimesWithDistance;
+
+    const totalPages = Math.max(1, Math.ceil(nearestItems.length / ITEMS_PER_PAGE));
     const startIdx = (activePage - 1) * ITEMS_PER_PAGE;
-    const pageItems = items.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+    const pageItems = nearestItems.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
     const PAGINATION_WINDOW = 5;
     const getVisiblePages = (current, total) => {
@@ -134,7 +164,7 @@ export default function NearestNewsSection() {
                                 fontSize: '0.95rem',
                             }}
                         >
-                            Kejadian terbaru di sekitar Jakarta Barat dan area sekitarnya.
+                            Kejadian terbaru di sekitar {savedLocation?.city || 'lokasi Anda'} dan area sekitarnya.
                         </p>
                     </div>
                     <a
