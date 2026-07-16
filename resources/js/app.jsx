@@ -8,6 +8,8 @@ import MapPage from './Page/Map/Map';
 import News from './Page/News/News';
 import Statistics from './Page/Statistics/Statistics';
 import About from './Page/About/About';
+import Report from './Page/Report/Report';
+import ReportDetail from './Page/Report/ReportDetail';
 
 function App() {
     return (
@@ -18,6 +20,8 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/map" element={<MapPage />} />
                     <Route path="/news" element={<News />} />
+                    <Route path="/laporan" element={<Report />} />
+                    <Route path="/laporan/:id" element={<ReportDetail />} />
                     <Route path="/statistik" element={<Statistics />} />
                     <Route path="/tentang" element={<About />} />
                 </Routes>

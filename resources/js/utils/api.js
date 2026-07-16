@@ -168,5 +168,54 @@ export const api = {
   scrape: {
     trigger: () => request('/scrape', { method: 'POST' }),
   },
+  reports: {
+    list: async (params = {}) => {
+      if (!supabase) return []
+      let query = supabase.from('community_reports').select('*')
+      if (params.category) query = query.eq('category', params.category)
+      if (params.province) query = query.eq('province', params.province)
+      if (params.search) query = query.ilike('title', `%${params.search}%`)
+
+      if (params.sort === 'top') {
+        query = query.order('upvotes', { ascending: false })
+      } else {
+        query = query.order('created_at', { ascending: false })
+      }
+
+      const { data, error } = await query
+      if (error) { console.error(error); return [] }
+      return data || []
+    },
+    show: async (id) => {
+      if (!supabase) return null
+      const { data, error } = await supabase.from('community_reports').select('*').eq('id', id).single()
+      if (error || !data) return null
+      return data
+    },
+    create: async (reportData) => {
+      if (!supabase) return null
+      const { data, error } = await supabase.from('community_reports').insert([reportData]).select().single()
+      if (error) { console.error(error); throw error }
+      return data
+    },
+    vote: async (reportId, userId, voteType) => {
+      if (!supabase) return null
+      // Check existing vote
+      const { data: existing } = await supabase.from('report_votes').select('*').eq('report_id', reportId).eq('user_id', userId).single()
+      if (existing) {
+        if (existing.vote_type === voteType) {
+          // Remove vote
+          await supabase.from('report_votes').delete().eq('id', existing.id)
+        } else {
+          // Update vote
+          await supabase.from('report_votes').update({ vote_type: voteType }).eq('id', existing.id)
+        }
+      } else {
+        // Insert new vote
+        await supabase.from('report_votes').insert([{ report_id: reportId, user_id: userId, vote_type: voteType }])
+      }
+      return true
+    }
+  },
   health: () => request('/health'),
 }

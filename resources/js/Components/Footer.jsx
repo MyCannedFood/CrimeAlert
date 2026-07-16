@@ -4,6 +4,7 @@ const navLinks = [
     { name: 'Beranda', path: '/' },
     { name: 'Peta', path: '/map' },
     { name: 'Berita', path: '/news' },
+    { name: 'Laporan', path: '/laporan' },
     { name: 'Statistik', path: '/statistik' },
     { name: 'Tentang', path: '/tentang' },
 ];
