@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
@@ -170,11 +170,24 @@ function GeolocationButton() {
   );
 }
 
+function MapFocusController({ targetLocation }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!targetLocation) return;
+
+    map.flyTo([targetLocation.lat, targetLocation.lng], 13, { duration: 1.2 });
+  }, [map, targetLocation]);
+
+  return null;
+}
+
 /* ---------------------------------------------------------------------
    Main Map Page Component
 --------------------------------------------------------------------- */
 export default function MapPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("Semua Provinsi");
   const [selectedCity, setSelectedCity] = useState("Semua Kota");
@@ -182,6 +195,23 @@ export default function MapPage() {
   const [heatmapOn, setHeatmapOn] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [bounds, setBounds] = useState(null);
+  const [targetLocation, setTargetLocation] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const lat = params.get("lat");
+    const lng = params.get("lng");
+
+    if (lat && lng) {
+      setTargetLocation({
+        lat: Number(lat),
+        lng: Number(lng),
+      });
+      return;
+    }
+
+    setTargetLocation(null);
+  }, [location.search]);
 
   // Available options derived from data
   const PROVINCE_OPTIONS = ["Semua Provinsi", "DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Sumatera Utara", "Sulawesi Selatan", "Bali", "Kalimantan Timur"];
@@ -239,8 +269,8 @@ export default function MapPage() {
 
       {/* ============ LEAFLET MAP CONTAINER ============ */}
       <MapContainer
-        center={[-2.5489, 118.0149]}
-        zoom={5}
+        center={targetLocation ? [targetLocation.lat, targetLocation.lng] : [-2.5489, 118.0149]}
+        zoom={targetLocation ? 13 : 5}
         zoomControl={false}
         scrollWheelZoom={true}
         style={{ width: "100%", height: "100%" }}
@@ -251,6 +281,7 @@ export default function MapPage() {
         />
 
         <MapEventHandler onBoundsChange={setBounds} />
+        {targetLocation && <MapFocusController targetLocation={targetLocation} />}
 
         {/* Heatmap Layer */}
         {heatmapOn && <HeatmapLayer points={heatmapPoints} />}

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function HeroSection() {
+    const navigate = useNavigate();
     const [userCity, setUserCity] = useState('Mendeteksi lokasi...');
+    const [userLocation, setUserLocation] = useState(null);
 
     useEffect(() => {
         if (!navigator.geolocation) {
@@ -31,6 +33,11 @@ export default function HeroSection() {
                         'Lokasi tidak tersedia';
 
                     setUserCity(detectedCity);
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        city: detectedCity,
+                    });
                 } catch (error) {
                     setUserCity('Lokasi tidak tersedia');
                 }
@@ -291,16 +298,33 @@ export default function HeroSection() {
                         </svg>
                         <span>Lokasi Anda :</span>
                         <strong style={{ color: '#0F172A' }}>{userCity}</strong>
-                        <Link
-                            to="/map"
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (userLocation) {
+                                    const params = new URLSearchParams({
+                                        lat: String(userLocation.lat),
+                                        lng: String(userLocation.lng),
+                                        city: userLocation.city,
+                                    });
+                                    navigate(`/map?${params.toString()}`);
+                                    return;
+                                }
+
+                                navigate('/map');
+                            }}
                             style={{
                                 color: '#2563EB',
                                 fontWeight: 600,
                                 textDecoration: 'none',
+                                background: 'transparent',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
                             }}
                         >
                             Lihat di peta&nbsp;→
-                        </Link>
+                        </button>
                     </div>
                 </div>
 

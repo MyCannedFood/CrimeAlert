@@ -26,8 +26,10 @@ function MapIcon() {
     );
 }
 
-// Consistent edge padding, matching LatestNewsSection / NearestNewsSection.
+// Padding untuk header teks (tetap sama seperti LatestNewsSection / NearestNewsSection).
 const EDGE_PADDING = 'clamp(1.25rem, 4vw, 3rem)';
+// Padding khusus untuk card peta - dibuat lebih kecil supaya card-nya lebih lebar.
+const MAP_EDGE_PADDING = 'clamp(0.5rem, 1.5vw, 1.25rem)';
 
 export default function RiskLevelSection() {
     return (
@@ -107,18 +109,29 @@ export default function RiskLevelSection() {
             </div>
 
             <div
+                className="risk-map-card"
                 style={{
                     background: '#FFFFFF',
                     border: '1px solid #E2E8F0',
                     borderRadius: '18px',
                     overflow: 'hidden',
                     boxShadow: '0 8px 20px rgba(15, 23, 42, 0.05)',
-                    marginLeft: EDGE_PADDING,
-                    marginRight: EDGE_PADDING,
+                    marginLeft: MAP_EDGE_PADDING,
+                    marginRight: MAP_EDGE_PADDING,
                 }}
             >
-                <div style={{ position: 'relative', width: '100%' }}>
-                    <MiniMap height="400px" showHeatmap={true} interactive={false} />
+                <div
+                    className="risk-map-frame"
+                    style={{
+                        position: 'relative',
+                        width: '100%',
+                        aspectRatio: '21 / 9',
+                        minHeight: '320px',
+                    }}
+                >
+                    <div style={{ position: 'absolute', inset: 0 }}>
+                        <MiniMap height="100%" showHeatmap={true} interactive={false} />
+                    </div>
                 </div>
 
                 <div
@@ -169,6 +182,10 @@ export default function RiskLevelSection() {
                     .risk-legend {
                         gap: 1rem !important;
                         padding: 0.85rem 1rem !important;
+                    }
+                    .risk-map-frame {
+                        aspect-ratio: 4 / 5 !important;
+                        min-height: 380px !important;
                     }
                 }
             `}</style>

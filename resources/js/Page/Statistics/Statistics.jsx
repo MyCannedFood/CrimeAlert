@@ -10,6 +10,22 @@ export default function Statistics() {
         { title: "Rata-rata Kasus Harian", value: "2,74", trend: "+1.4% dari minggu lalu", isPositive: true },
     ];
 
+    // Data tren bulanan Jan-Des - ganti dengan data asli dari API/backend
+    const monthlyTrend = [
+        { month: "Jan", value: 7200 },
+        { month: "Feb", value: 6800 },
+        { month: "Mar", value: 7900 },
+        { month: "Apr", value: 8100 },
+        { month: "May", value: 7600 },
+        { month: "Jun", value: 8300 },
+        { month: "Jul", value: 8492 },
+        { month: "Aug", value: 8700 },
+        { month: "Sep", value: 8300 },
+        { month: "Oct", value: 7900 },
+        { month: "Nov", value: 8600 },
+        { month: "Dec", value: 9100 },
+    ];
+
     const crimeCategories = [
         { name: "Theft", percent: "28%", color: "bg-[#3b82f6]" },
         { name: "Fraud", percent: "17%", color: "bg-[#f97316]" },
@@ -33,6 +49,62 @@ export default function Statistics() {
         { name: "9. Sulawesi Selatan", value: 35, color: "bg-[#facc15]" },
         { name: "10. Lampung", value: 30, color: "bg-[#facc15]" },
     ];
+
+    // ---- Perhitungan untuk Line Chart (Monthly Crime Trend) ----
+    const chartValues = monthlyTrend.map((d) => d.value);
+    const rawMin = Math.min(...chartValues);
+    const rawMax = Math.max(...chartValues);
+    const padding = (rawMax - rawMin) * 0.15 || rawMax * 0.1;
+    const scaleMin = Math.max(0, Math.floor((rawMin - padding) / 100) * 100);
+    const scaleMax = Math.ceil((rawMax + padding) / 100) * 100;
+
+    // Layout SVG
+    const SVG_W = 1000;
+    const SVG_H = 300;
+    const LEFT_PAD = 55;
+    const RIGHT_PAD = 20;
+    const TOP_PAD = 20;
+    const BOTTOM_PAD = 40;
+    const chartW = SVG_W - LEFT_PAD - RIGHT_PAD;
+    const chartH = SVG_H - TOP_PAD - BOTTOM_PAD;
+
+    const getX = (i) => LEFT_PAD + (i / (monthlyTrend.length - 1)) * chartW;
+    const getY = (value) =>
+        TOP_PAD + chartH - ((value - scaleMin) / (scaleMax - scaleMin)) * chartH;
+
+    const points = monthlyTrend.map((d, i) => ({
+        ...d,
+        x: getX(i),
+        y: getY(d.value),
+    }));
+
+    // Segmen antar titik, warna berdasarkan naik/turun
+    const segments = points.slice(1).map((p, i) => {
+        const prev = points[i];
+        const isIncrease = p.value > prev.value;
+        return {
+            x1: prev.x,
+            y1: prev.y,
+            x2: p.x,
+            y2: p.y,
+            color: isIncrease ? '#dc2626' : '#22c55e',
+        };
+    });
+
+    // Area (fill) di bawah garis
+    const areaPath =
+        `M ${points[0].x},${TOP_PAD + chartH} ` +
+        points.map((p) => `L ${p.x},${p.y}`).join(' ') +
+        ` L ${points[points.length - 1].x},${TOP_PAD + chartH} Z`;
+
+    // Ticks sumbu Y (4 garis bantu)
+    const yTicksCount = 4;
+    const yTicks = Array.from({ length: yTicksCount + 1 }, (_, i) => {
+        const value = scaleMin + ((scaleMax - scaleMin) / yTicksCount) * i;
+        return { value, y: getY(value) };
+    });
+
+    const formatValue = (v) => (v >= 1000 ? `${(v / 1000).toFixed(1).replace('.0', '')}K` : v);
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
@@ -73,7 +145,7 @@ export default function Statistics() {
 
             {/* Main Content */}
             <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12 py-8 flex-grow space-y-6">
-                
+
                 {/* 1. Summary Cards (Row Layout) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {summaryData.map((item, index) => (
@@ -92,49 +164,104 @@ export default function Statistics() {
 
                 {/* 2. Charts Section (Row Layout) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Line Chart Area */}
+                    {/* Line Chart Area - merah (naik) / hijau (turun) */}
                     <div className="col-span-1 lg:col-span-2 bg-white border border-gray-200 p-6 rounded-none shadow-sm flex flex-col">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-sm font-bold text-gray-900">Monthly Crime Trend</h3>
-                            <div className="flex items-center text-xs text-gray-500">
-                                <span className="w-2 h-2 bg-gray-800 rounded-full mr-2"></span>
-                                Incidents
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-900">Monthly Crime Trend</h3>
+                                <p className="text-xs text-gray-500">Jumlah kasus per bulan (Jan - Des)</p>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs">
+                                <div className="flex items-center text-gray-600">
+                                    <span className="w-3 h-[3px] bg-[#dc2626] mr-1.5"></span>
+                                    Naik
+                                </div>
+                                <div className="flex items-center text-gray-600">
+                                    <span className="w-3 h-[3px] bg-[#22c55e] mr-1.5"></span>
+                                    Turun
+                                </div>
                             </div>
                         </div>
-                        {/* Placeholder Line Chart Visual */}
-                        <div className="relative w-full h-64 border-l border-b border-gray-100 flex items-end">
-                            <svg className="absolute w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                                <path d="M0,70 Q10,65 20,80 T40,60 T60,30 T80,50 T100,40" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-                                <path d="M0,80 Q15,85 25,60 T50,80 T70,55 T90,35 T100,20" fill="none" stroke="#e2e8f0" strokeWidth="1.5" strokeDasharray="2" />
-                            </svg>
-                            {/* Y-Axis Labels */}
-                            <div className="absolute left-[-30px] top-0 h-full flex flex-col justify-between text-[10px] text-gray-400 py-2">
-                                <span>30K</span>
-                                <span>20K</span>
-                                <span>10K</span>
-                                <span>0</span>
-                            </div>
-                            {/* X-Axis Labels */}
-                            <div className="absolute bottom-[-25px] w-full flex justify-between text-[10px] text-gray-400 px-4">
-                                <span>Jan</span>
-                                <span>Feb</span>
-                                <span>Mar</span>
-                                <span>Apr</span>
-                                <span>May</span>
-                                <span>Jun</span>
-                                <span>Jul</span>
-                            </div>
-                        </div>
+
+                        <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full h-72" preserveAspectRatio="none">
+                            {/* Grid horizontal + label sumbu Y */}
+                            {yTicks.map((tick, i) => (
+                                <g key={i}>
+                                    <line
+                                        x1={LEFT_PAD}
+                                        y1={tick.y}
+                                        x2={SVG_W - RIGHT_PAD}
+                                        y2={tick.y}
+                                        stroke="#e5e7eb"
+                                        strokeWidth="1"
+                                        strokeDasharray={i === yTicksCount ? '0' : '4 4'}
+                                    />
+                                    <text
+                                        x={LEFT_PAD - 10}
+                                        y={tick.y + 4}
+                                        textAnchor="end"
+                                        fontSize="11"
+                                        fill="#94a3b8"
+                                    >
+                                        {formatValue(tick.value)}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* Area fill di bawah garis */}
+                            <path d={areaPath} fill="#3b82f6" opacity="0.06" />
+
+                            {/* Segmen garis berwarna sesuai tren */}
+                            {segments.map((seg, i) => (
+                                <line
+                                    key={i}
+                                    x1={seg.x1}
+                                    y1={seg.y1}
+                                    x2={seg.x2}
+                                    y2={seg.y2}
+                                    stroke={seg.color}
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                />
+                            ))}
+
+                            {/* Titik + label bulan + tooltip */}
+                            {points.map((p, i) => {
+                                const dotColor =
+                                    i === 0
+                                        ? '#94a3b8'
+                                        : p.value > points[i - 1].value
+                                        ? '#dc2626'
+                                        : '#22c55e';
+                                return (
+                                    <g key={i}>
+                                        <circle cx={p.x} cy={p.y} r="4.5" fill="#ffffff" stroke={dotColor} strokeWidth="2.5">
+                                            <title>{`${p.month}: ${p.value.toLocaleString('id-ID')} kasus`}</title>
+                                        </circle>
+                                        <text
+                                            x={p.x}
+                                            y={SVG_H - 12}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fill="#64748b"
+                                            fontWeight="500"
+                                        >
+                                            {p.month}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+                        </svg>
                     </div>
 
                     {/* Donut Chart Area */}
                     <div className="col-span-1 bg-white border border-gray-200 p-6 rounded-none shadow-sm">
                         <h3 className="text-sm font-bold text-gray-900 mb-1">Crime Categories</h3>
                         <p className="text-xs text-gray-500 mb-6">Distribution by type</p>
-                        
+
                         <div className="flex flex-row lg:flex-col xl:flex-row items-center justify-between gap-6">
                             {/* CSS Donut Graphic */}
-                            <div className="relative w-32 h-32 flex-shrink-0 rounded-full" 
+                            <div className="relative w-32 h-32 flex-shrink-0 rounded-full"
                                  style={{ background: 'conic-gradient(#3b82f6 0% 28%, #f97316 28% 45%, #dc2626 45% 60%, #8b5cf6 60% 71%, #14b8a6 71% 80%, #facc15 80% 89%, #22c55e 89% 96%, #6b21a8 96% 100%)' }}>
                                 <div className="absolute inset-2 bg-white rounded-full flex flex-col items-center justify-center">
                                     <span className="text-lg font-bold text-gray-900">6540</span>
@@ -160,7 +287,7 @@ export default function Statistics() {
 
                 {/* 3. Bottom Section (Row Layout) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
-                    
+
                     {/* Top Provinces Bar Chart */}
                     <div className="bg-white border border-gray-200 p-6 rounded-none shadow-sm flex flex-col">
                         <div className="flex items-center mb-1">
@@ -168,7 +295,7 @@ export default function Statistics() {
                             <h3 className="text-sm font-bold text-gray-900">Top 10 Most Active Provinces</h3>
                         </div>
                         <p className="text-xs text-gray-500 mb-6">Ranked by crime index</p>
-                        
+
                         <div className="flex-grow space-y-4">
                             {provinces.map((prov, i) => (
                                 <div key={i} className="flex flex-col">
@@ -179,7 +306,7 @@ export default function Statistics() {
                                 </div>
                             ))}
                         </div>
-                        
+
                         {/* Legend */}
                         <div className="flex items-center space-x-4 mt-8 text-[11px] font-medium text-gray-600">
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#22c55e] mr-1"></span> Aman</div>
@@ -203,7 +330,7 @@ export default function Statistics() {
                                 Lihat Peta Lengkap →
                             </a>
                         </div>
-                        
+
                         {/* Map Visual Component */}
                         <div className="flex-grow w-full border border-gray-100 rounded-sm bg-white overflow-hidden min-h-[300px]">
                             <MiniMap height="300px" showHeatmap={true} interactive={false} />
