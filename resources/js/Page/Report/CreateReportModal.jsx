@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { FileText, X, Send, Upload, Image as ImageIcon } from 'lucide-react';
 import { api } from '../../utils/api';
 
@@ -24,13 +25,15 @@ const FALLBACK_PROVINCES = [
     'Lainnya',
 ];
 
-export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
+export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
     const [province, setProvince] = useState('');
     const [city, setCity] = useState('');
     const [username, setUsername] = useState('');
+    const [showName, setShowName] = useState(true);
+    const [emailName, setEmailName] = useState('');
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
@@ -46,7 +49,38 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
         api.getProvinceOptions().then((provs) => {
             if (provs.length > 0) setProvinces(provs);
         });
-    }, [isOpen]);
+
+        const fullNameFromMeta =
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.fullName ||
+            user?.user_metadata?.display_name ||
+            user?.user_metadata?.displayName ||
+            (user?.user_metadata?.first_name && user?.user_metadata?.last_name
+                ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                : null) ||
+            null;
+
+        // fallback: pakai email name part jika full name tidak ada
+        const rawEmail = user?.email || user?.user_metadata?.email;
+        let fallbackName = '';
+        if (typeof rawEmail === 'string' && rawEmail.includes('@')) {
+            fallbackName = rawEmail.split('@')[0];
+        }
+
+        const finalName = typeof fullNameFromMeta === 'string' && fullNameFromMeta.trim()
+            ? fullNameFromMeta.trim()
+            : fallbackName;
+
+        if (finalName) {
+            setEmailName(finalName);
+            setShowName(true);
+            setUsername(finalName);
+        } else {
+            setEmailName('');
+            setShowName(false);
+            setUsername('');
+        }
+    }, [isOpen, user]);
 
     if (!isOpen) return null;
 
@@ -93,7 +127,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
                 category: category || null,
                 province: province || null,
                 city: city.trim() || null,
-                username: username.trim() || 'WargaAnonim',
+                username: showName ? (username.trim() || emailName || 'Anonim') : 'Anonim',
                 image_url: imageId,
                 upvotes: 1,
                 downvotes: 0,
@@ -105,6 +139,8 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
             setDescription('');
             setCity('');
             setUsername('');
+            setShowName(true);
+            setEmailName('');
             setImageFile(null);
             if (imagePreview) URL.revokeObjectURL(imagePreview);
             setImagePreview(null);
@@ -121,6 +157,14 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
         setImagePreview(null);
         setImageFile(null);
         setError('');
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setProvince('');
+        setCity('');
+        setUsername('');
+        setShowName(true);
+        setEmailName('');
         onClose();
     };
 
@@ -151,12 +195,49 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit }) {
                         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                             Nama Pelapor (Opsional)
                         </label>
+
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowName(true);
+                                    if (!username && emailName) setUsername(emailName);
+                                }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                                    showName
+                                        ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300'
+                                        : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900'
+                                }`}
+                            >
+                                Tampilkan nama
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowName(false);
+                                    setUsername('');
+                                }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                                    !showName
+                                        ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300'
+                                        : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900'
+                                }`}
+                            >
+                                Tetap anonim
+                            </button>
+                        </div>
+
                         <input
                             type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={showName ? username : ''}
                             placeholder="Anonim jika dikosongkan"
-                            className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg px-3.5 py-2 text-sm outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            disabled
+                            readOnly
+                            className={`w-full border ${
+                                showName
+                                    ? 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950'
+                                    : 'border-slate-200/70 dark:border-slate-800 bg-slate-50 dark:bg-slate-950'
+                            } text-slate-900 dark:text-white rounded-lg px-3.5 py-2 text-sm outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 cursor-not-allowed opacity-90`}
                         />
                     </div>
 

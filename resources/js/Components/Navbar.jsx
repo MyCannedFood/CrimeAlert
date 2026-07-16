@@ -40,7 +40,6 @@ export default function Navbar() {
             const { data: authData } = supabase.auth.onAuthStateChange((_event, nextSession) => {
                 if (!mounted) return;
                 setUser(nextSession?.user ?? null);
-                if (_event === 'SIGNED_IN') navigate('/', { replace: true });
             });
 
             cleanup = () => authData.subscription.unsubscribe();
@@ -62,14 +61,14 @@ export default function Navbar() {
             setAuthError('');
             await supabase.auth.signOut();
             setUser(null);
-            navigate('/', { replace: true });
             return;
         }
 
         setAuthError('');
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: `${window.location.origin}/` },
+            // redirectTo harus kembali ke halaman yang sedang kamu buka
+            options: { redirectTo: `${window.location.origin}${location.pathname}` },
         });
 
         if (error) {
