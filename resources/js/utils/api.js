@@ -41,6 +41,7 @@ async function request(endpoint, options = {}) {
 }
 
 function buildQuery(params = {}) {
+  if (!supabase) return null
   let query = supabase.from('crime_articles').select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary')
   if (params.province) query = query.eq('province', params.province)
   if (params.city) query = query.eq('city', params.city)
@@ -58,16 +59,20 @@ function buildQuery(params = {}) {
 export const api = {
   crimes: {
     list: async (params = {}) => {
-      const { data, error } = await buildQuery(params)
+      const query = buildQuery(params)
+      if (!query) return []
+      const { data, error } = await query
       if (error) { console.error(error); return [] }
       return (data || []).map(mapArticle)
     },
     show: async (id) => {
+      if (!supabase) return null
       const { data, error } = await supabase.from('crime_articles').select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary').eq('id', id).single()
       if (error || !data) return null
       return mapArticle(data)
     },
     latest: async (limit = 20) => {
+      if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles')
         .select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary')
         .order('published', { ascending: false })
@@ -81,6 +86,7 @@ export const api = {
   },
   stats: {
     summary: async () => {
+      if (!supabase) return { total_cases: 0, resolved_cases: 0, high_risk_regions: 0, avg_daily_cases: 0 }
       const { data, error } = await supabase.from('crime_articles').select('severity,status,published,province')
       if (error || !data) return { total_cases: 0, resolved_cases: 0, high_risk_regions: 0, avg_daily_cases: 0 }
       const total = data.length
@@ -96,6 +102,7 @@ export const api = {
       return { total_cases: total, resolved_cases: resolved, high_risk_regions: highRisk, avg_daily_cases: avgDaily }
     },
     byCategory: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles').select('crime_type')
       if (error || !data) return []
       const cats = {}
@@ -106,6 +113,7 @@ export const api = {
         .sort((a, b) => b.total - a.total)
     },
     byProvince: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles').select('province,severity')
       if (error || !data) return []
       const order = { safe: 0, moderate: 1, high: 2, danger: 3 }
@@ -121,6 +129,7 @@ export const api = {
         .sort((a, b) => b.total - a.total)
     },
     trend: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles').select('published')
       if (error || !data) return []
       const months = {}
@@ -130,11 +139,13 @@ export const api = {
   },
   geo: {
     nearby: async (lat, lng, radius = 50) => {
+      if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles').select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,description').limit(50)
       if (error) { console.error(error); return [] }
       return (data || []).map(mapArticle)
     },
     heatmap: async () => {
+      if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles').select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,description').limit(200)
       if (error) { console.error(error); return [] }
       return (data || []).map(mapArticle)

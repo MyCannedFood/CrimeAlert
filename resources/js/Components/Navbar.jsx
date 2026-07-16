@@ -34,17 +34,20 @@ export default function Navbar() {
             }}
         >
             <div
+                className="navbar-container"
                 style={{
                     maxWidth: '1180px',
                     margin: '0 auto',
                     padding: '0.9rem 1.25rem',
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: 'auto 1fr auto',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
+                    gap: '1rem',
                 }}
             >
                 <Link
                     to="/"
+                    className="navbar-logo"
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -96,7 +99,15 @@ export default function Navbar() {
                     </div>
                 </Link>
 
-                <div className="navbar-desktop-items" style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
+                <div
+                    className="navbar-desktop-items"
+                    style={{
+                        display: 'flex',
+                        gap: '0.45rem',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
                     {navItems.map((item) => {
                         const active = isActive(item.path);
                         return (
@@ -111,6 +122,7 @@ export default function Navbar() {
                                     padding: '0.6rem 0.9rem',
                                     borderRadius: '999px',
                                     background: active ? '#eff6ff' : 'transparent',
+                                    whiteSpace: 'nowrap',
                                     transition: 'all 0.2s ease',
                                 }}
                             >
@@ -120,28 +132,80 @@ export default function Navbar() {
                     })}
                 </div>
 
-                <button
-                    className="navbar-hamburger"
-                    onClick={() => setIsOpen(!isOpen)}
+                <div
+                    className="navbar-right"
                     style={{
-                        display: 'none',
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '999px',
-                        cursor: 'pointer',
-                        padding: '0.55rem',
-                        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.6rem',
+                        justifySelf: 'end',
                     }}
-                    aria-label="Toggle menu"
                 >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2">
-                        {isOpen ? (
-                            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                        ) : (
-                            <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
-                        )}
-                    </svg>
-                </button>
+                    <div
+                        className="navbar-auth-buttons"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.6rem',
+                        }}
+                    >
+                        <Link
+                            to="/masuk"
+                            style={{
+                                textDecoration: 'none',
+                                color: '#334155',
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                padding: '0.6rem 1rem',
+                                borderRadius: '999px',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            Masuk
+                        </Link>
+                        <Link
+                            to="/daftar"
+                            style={{
+                                textDecoration: 'none',
+                                color: '#ffffff',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                padding: '0.62rem 1.15rem',
+                                borderRadius: '999px',
+                                background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                                boxShadow: '0 10px 24px rgba(37, 99, 235, 0.24)',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            Daftar
+                        </Link>
+                    </div>
+
+                    <button
+                        className="navbar-hamburger"
+                        onClick={() => setIsOpen(!isOpen)}
+                        style={{
+                            display: 'none',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '999px',
+                            cursor: 'pointer',
+                            padding: '0.55rem',
+                            boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
+                        }}
+                        aria-label="Toggle menu"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2">
+                            {isOpen ? (
+                                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                            ) : (
+                                <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+                            )}
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {isOpen && (
@@ -177,6 +241,50 @@ export default function Navbar() {
                             </Link>
                         );
                     })}
+
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '0.5rem',
+                            marginTop: '0.4rem',
+                            paddingTop: '0.6rem',
+                            borderTop: '1px solid rgba(15, 23, 42, 0.08)',
+                        }}
+                    >
+                        <Link
+                            to="/masuk"
+                            onClick={() => setIsOpen(false)}
+                            style={{
+                                flex: 1,
+                                textAlign: 'center',
+                                textDecoration: 'none',
+                                color: '#334155',
+                                fontWeight: 700,
+                                padding: '0.7rem 0.85rem',
+                                borderRadius: '12px',
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                            }}
+                        >
+                            Masuk
+                        </Link>
+                        <Link
+                            to="/daftar"
+                            onClick={() => setIsOpen(false)}
+                            style={{
+                                flex: 1,
+                                textAlign: 'center',
+                                textDecoration: 'none',
+                                color: '#ffffff',
+                                fontWeight: 700,
+                                padding: '0.7rem 0.85rem',
+                                borderRadius: '12px',
+                                background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                            }}
+                        >
+                            Daftar
+                        </Link>
+                    </div>
                 </div>
             )}
 
@@ -185,9 +293,28 @@ export default function Navbar() {
                     .navbar-desktop-items {
                         display: none !important;
                     }
+                    .navbar-auth-buttons {
+                        display: none !important;
+                    }
                     .navbar-hamburger {
                         display: block !important;
                     }
+                    .navbar-container {
+                        grid-template-columns: auto auto !important;
+                        justify-content: space-between !important;
+                    }
+                }
+                @media (min-width: 769px) {
+                    .navbar-logo {
+                        margin-left: -1.5rem;
+                    }
+                }
+                .navbar-auth-buttons a:first-child:hover {
+                    background: #f1f5f9;
+                }
+                .navbar-auth-buttons a:last-child:hover {
+                    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.32);
+                    transform: translateY(-1px);
                 }
             `}</style>
         </nav>
