@@ -121,30 +121,6 @@ export default function HeroSection() {
             }}
         >
             <div
-                style={{
-                    position: 'absolute',
-                    inset: '0 auto auto -3rem',
-                    width: '280px',
-                    height: '280px',
-                    background: 'rgba(255,255,255,0.28)',
-                    filter: 'blur(20px)',
-                    borderRadius: '50%',
-                    pointerEvents: 'none',
-                }}
-            />
-            <div
-                style={{
-                    position: 'absolute',
-                    inset: 'auto -2rem 0 auto',
-                    width: '220px',
-                    height: '220px',
-                    background: 'rgba(37, 99, 235, 0.12)',
-                    filter: 'blur(18px)',
-                    borderRadius: '50%',
-                    pointerEvents: 'none',
-                }}
-            />
-            <div
                 className="hero-container"
                 style={{
                     maxWidth: '1200px',

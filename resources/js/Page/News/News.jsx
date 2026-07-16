@@ -54,8 +54,6 @@ export default function News() {
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 font-sans flex flex-col">
             <div className="relative overflow-hidden pt-16 pb-12 px-6 md:px-12 border-b border-gray-200 dark:border-slate-700" style={{ background: 'linear-gradient(135deg, var(--color-hero-start) 0%, var(--color-hero-end) 100%)' }}>
-                <div style={{ position: 'absolute', inset: '0 auto auto -3rem', width: '280px', height: '280px', background: 'rgba(255,255,255,0.28)', filter: 'blur(20px)', borderRadius: '50%', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', inset: 'auto -2rem 0 auto', width: '220px', height: '220px', background: 'rgba(37, 99, 235, 0.12)', filter: 'blur(18px)', borderRadius: '50%', pointerEvents: 'none' }} />
                 <div className="relative max-w-[1400px] mx-auto">
                     <div className="text-sm text-gray-800 dark:text-slate-300 mb-2">Beranda &gt; Berita</div>
                     <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">Berita Kriminal</h1>
