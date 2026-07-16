@@ -138,10 +138,12 @@ export default function About() {
 
       {/* Hero */}
       <div
-        className="px-6 py-16 text-center md:px-16"
-        style={{ background: "linear-gradient(180deg, #C9D6F7 0%, #EEF2FC 55%, " + COLORS.bg + " 100%)" }}
+        className="relative overflow-hidden border-b border-gray-200 px-6 py-16 text-center md:px-16"
+        style={{ background: "linear-gradient(135deg, #EAF0FE 0%, #DCE6FB 100%)" }}
       >
-        <div className="mx-auto max-w-[720px]">
+        <div style={{ position: "absolute", inset: "0 auto auto -3rem", width: "280px", height: "280px", background: "rgba(255,255,255,0.28)", filter: "blur(20px)", borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: "auto -2rem 0 auto", width: "220px", height: "220px", background: "rgba(37, 99, 235, 0.12)", filter: "blur(18px)", borderRadius: "50%", pointerEvents: "none" }} />
+        <div className="relative mx-auto max-w-[720px]">
           <Eyebrow icon={Shield}>Tentang Kami</Eyebrow>
           <h1 className="text-[30px] font-bold leading-tight md:text-[36px]" style={{ color: COLORS.text }}>
             Membantu Masyarakat Indonesia Menjadi Lebih Aman
