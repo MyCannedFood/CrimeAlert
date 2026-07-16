@@ -199,66 +199,6 @@ export default function HeroSection() {
                     </p>
 
                     <div
-                        className="hero-search"
-                        style={{
-                            display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    background: 'var(--color-input-bg)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: '999px',
-                                    padding: '0.4rem 0.4rem 0.4rem 1.1rem',
-                                    marginTop: '1.6rem',
-                                    maxWidth: '480px',
-                                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
-                        }}
-                    >
-                        <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#94A3B8"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{ flexShrink: 0 }}
-                        >
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="m21 21-4.3-4.3" />
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Cari Lokasi, Kota, Atau Provinsi"
-                            style={{
-                                border: 'none',
-                                outline: 'none',
-                                background: 'transparent',
-                                flex: 1,
-                                fontSize: '0.95rem',
-                                color: '#0F172A',
-                                minWidth: 0,
-                            }}
-                        />
-                        <button
-                            type="button"
-                            style={{
-                                border: 'none',
-                                background: '#2563EB',
-                                color: '#FFFFFF',
-                                fontWeight: 700,
-                                fontSize: '0.9rem',
-                                padding: '0.7rem 1.5rem',
-                                borderRadius: '999px',
-                                cursor: 'pointer',
-                                flexShrink: 0,
-                            }}
-                        >
-                            Cari
-                        </button>
-                    </div>
-
-                    <div
                         style={{
                             display: 'flex',
                                     alignItems: 'center',
