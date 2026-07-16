@@ -1,4 +1,5 @@
 import React from 'react';
+import MiniMap from '../../Components/Map/MiniMap';
 
 export default function Statistics() {
     const summaryData = [
@@ -197,22 +198,14 @@ export default function Statistics() {
                                 </div>
                                 <p className="text-xs text-gray-500">Ranked by crime index</p>
                             </div>
-                            <a href="#" className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                            <a href="/map" className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 Lihat Peta Lengkap →
                             </a>
                         </div>
                         
-                        {/* Map Visual Placeholder */}
-                        <div className="flex-grow w-full border border-gray-100 rounded-sm bg-white flex items-center justify-center min-h-[300px] p-4 relative overflow-hidden">
-                            {/* Abstract silhouette of Indonesia using simplified shapes/gradients */}
-                            <div className="absolute inset-0 opacity-80" 
-                                 style={{
-                                    backgroundImage: 'radial-gradient(ellipse at 30% 50%, #f97316 0%, transparent 40%), radial-gradient(ellipse at 60% 60%, #facc15 0%, transparent 30%), radial-gradient(ellipse at 80% 55%, #f97316 0%, transparent 20%)'
-                                 }}>
-                            </div>
-                            <span className="text-gray-400 font-medium text-sm z-10 relative bg-white/60 px-2 py-1 rounded">
-                                [ Map Visualization Area ]
-                            </span>
+                        {/* Map Visual Component */}
+                        <div className="flex-grow w-full border border-gray-100 rounded-sm bg-white overflow-hidden min-h-[300px]">
+                            <MiniMap height="300px" showHeatmap={true} interactive={false} />
                         </div>
 
                         {/* Legend */}
