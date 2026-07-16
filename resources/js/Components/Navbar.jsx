@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
+import { useDarkMode } from '../utils/DarkModeProvider';
 
 const navItems = [
     { name: 'Beranda', path: '/' },
@@ -14,17 +15,10 @@ export default function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const { isDark, toggle } = useDarkMode();
     const [user, setUser] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [authError, setAuthError] = useState('');
-
-    const isActive = (path) => {
-        if (path === '/') {
-            return location.pathname === path;
-        }
-
-        return location.pathname.startsWith(path);
-    };
 
     useEffect(() => {
         let mounted = true;
@@ -32,16 +26,11 @@ export default function Navbar() {
 
         const syncAuth = async () => {
             if (!supabase) {
-                if (mounted) {
-                    setAuthLoading(false);
-                }
+                if (mounted) setAuthLoading(false);
                 return;
             }
 
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-
+            const { data: { session } } = await supabase.auth.getSession();
             if (!mounted) return;
 
             setUser(session?.user ?? null);
@@ -50,21 +39,14 @@ export default function Navbar() {
             const { data: authData } = supabase.auth.onAuthStateChange((_event, nextSession) => {
                 if (!mounted) return;
                 setUser(nextSession?.user ?? null);
-
-                if (_event === 'SIGNED_IN') {
-                    navigate('/', { replace: true });
-                }
+                if (_event === 'SIGNED_IN') navigate('/', { replace: true });
             });
 
             cleanup = () => authData.subscription.unsubscribe();
         };
 
         syncAuth();
-
-        return () => {
-            mounted = false;
-            cleanup();
-        };
+        return () => { mounted = false; cleanup(); };
     }, [navigate]);
 
     const handleAuthClick = async () => {
@@ -86,19 +68,21 @@ export default function Navbar() {
         setAuthError('');
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: {
-                redirectTo: `${window.location.origin}/`,
-            },
+            options: { redirectTo: `${window.location.origin}/` },
         });
 
         if (error) {
             const friendlyMessage = error?.message?.includes('provider is not enabled')
-                ? 'Google belum diaktifkan sebagai provider auth di Supabase Dashboard. Buka Authentication > Providers > Google lalu aktifkan.'
+                ? 'Google belum diaktifkan sebagai provider auth di Supabase Dashboard.'
                 : error?.message || 'Login gagal. Coba lagi.';
-
             setAuthError(friendlyMessage);
             console.error('Supabase auth error:', error);
         }
+    };
+
+    const isActive = (path) => {
+        if (path === '/') return location.pathname === path;
+        return location.pathname.startsWith(path);
     };
 
     return (
@@ -107,9 +91,9 @@ export default function Navbar() {
                 position: 'sticky',
                 top: 0,
                 zIndex: 1000,
-                background: 'rgba(255, 255, 255, 0.9)',
+                background: 'var(--color-navbar-bg)',
                 backdropFilter: 'blur(14px)',
-                borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
+                borderBottom: '1px solid var(--color-border)',
                 boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)',
             }}
         >
@@ -161,7 +145,7 @@ export default function Navbar() {
                             style={{
                                 fontSize: '1.05rem',
                                 fontWeight: 800,
-                                color: '#0f172a',
+                                color: 'var(--color-text)',
                                 letterSpacing: '-0.02em',
                             }}
                         >
@@ -170,8 +154,8 @@ export default function Navbar() {
                         <span
                             style={{
                                 fontSize: '0.72rem',
-                                fontWeight: 500,
-                                color: '#64748b',
+                                    fontWeight: 500,
+                                    color: 'var(--color-text-secondary)',
                             }}
                         >
                             Indonesia
@@ -196,12 +180,12 @@ export default function Navbar() {
                                 to={item.path}
                                 style={{
                                     textDecoration: 'none',
-                                    color: active ? '#2563eb' : '#475569',
+                                    color: active ? '#2563eb' : 'var(--color-text-secondary)',
                                     fontWeight: active ? 700 : 600,
                                     fontSize: '0.95rem',
                                     padding: '0.6rem 0.9rem',
                                     borderRadius: '999px',
-                                    background: active ? '#eff6ff' : 'transparent',
+                                    background: active ? 'var(--color-bg-secondary)' : 'transparent',
                                     whiteSpace: 'nowrap',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -225,44 +209,102 @@ export default function Navbar() {
                         className="navbar-auth-buttons"
                         style={{
                             display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'flex-end',
-                            gap: '0.35rem',
+                            alignItems: 'center',
+                            gap: '0.6rem',
                         }}
                     >
                         <button
-                            type="button"
-                            onClick={handleAuthClick}
-                            disabled={authLoading}
+                            onClick={toggle}
+                            aria-label="Toggle dark mode"
                             style={{
-                                border: 'none',
-                                cursor: authLoading ? 'wait' : 'pointer',
-                                color: '#ffffff',
-                                fontWeight: 700,
-                                fontSize: '0.9rem',
-                                padding: '0.62rem 1.15rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '36px',
+                                height: '36px',
                                 borderRadius: '999px',
-                                background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
-                                boxShadow: '0 10px 24px rgba(37, 99, 235, 0.24)',
-                                whiteSpace: 'nowrap',
+                                border: '1px solid var(--color-border)',
+                                background: 'var(--color-bg)',
+                                cursor: 'pointer',
+                                color: 'var(--color-text-secondary)',
                                 transition: 'all 0.2s ease',
+                                flexShrink: 0,
                             }}
                         >
-                            {authLoading ? 'Memuat...' : user ? 'Logout' : 'Masuk'}
+                            {isDark ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="5" />
+                                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                                </svg>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                </svg>
+                            )}
                         </button>
-                        {authError ? (
-                            <span
+                        {user ? (
+                            <button
+                                onClick={handleAuthClick}
+                                disabled={authLoading}
                                 style={{
-                                    maxWidth: '240px',
-                                    fontSize: '0.7rem',
-                                    lineHeight: 1.4,
-                                    color: '#dc2626',
-                                    textAlign: 'right',
+                                    textDecoration: 'none',
+                                    color: 'var(--color-text)',
+                                    fontWeight: 600,
+                                    fontSize: '0.9rem',
+                                    padding: '0.6rem 1rem',
+                                    borderRadius: '999px',
+                                    border: '1px solid var(--color-border)',
+                                    background: 'var(--color-bg-card)',
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    transition: 'all 0.2s ease',
                                 }}
                             >
-                                {authError}
-                            </span>
-                        ) : null}
+                                {authLoading ? '...' : 'Keluar'}
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleAuthClick}
+                                    disabled={authLoading}
+                                    style={{
+                                        textDecoration: 'none',
+                                        color: 'var(--color-text)',
+                                        fontWeight: 600,
+                                        fontSize: '0.9rem',
+                                        padding: '0.6rem 1rem',
+                                        borderRadius: '999px',
+                                        border: 'none',
+                                        background: 'transparent',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                >
+                                    {authLoading ? '...' : 'Masuk'}
+                                </button>
+                                <button
+                                    onClick={handleAuthClick}
+                                    disabled={authLoading}
+                                    style={{
+                                        textDecoration: 'none',
+                                        color: '#ffffff',
+                                        fontWeight: 700,
+                                        fontSize: '0.9rem',
+                                        padding: '0.62rem 1.15rem',
+                                        borderRadius: '999px',
+                                        border: 'none',
+                                        background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                                        boxShadow: '0 10px 24px rgba(37, 99, 235, 0.24)',
+                                        whiteSpace: 'nowrap',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                >
+                                    {authLoading ? '...' : 'Daftar'}
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     <button
@@ -270,8 +312,8 @@ export default function Navbar() {
                         onClick={() => setIsOpen(!isOpen)}
                         style={{
                             display: 'none',
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
+                            background: 'var(--color-bg-secondary)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '999px',
                             cursor: 'pointer',
                             padding: '0.55rem',
@@ -279,7 +321,7 @@ export default function Navbar() {
                         }}
                         aria-label="Toggle menu"
                     >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-text)' }}>
                             {isOpen ? (
                                 <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
                             ) : (
@@ -289,6 +331,21 @@ export default function Navbar() {
                     </button>
                 </div>
             </div>
+
+            {authError && (
+                <div
+                    style={{
+                        padding: '0.5rem 1.25rem',
+                        fontSize: '0.8rem',
+                        color: '#dc2626',
+                        background: '#fef2f2',
+                        textAlign: 'center',
+                        borderBottom: '1px solid #fecaca',
+                    }}
+                >
+                    {authError}
+                </div>
+            )}
 
             {isOpen && (
                 <div
@@ -311,12 +368,12 @@ export default function Navbar() {
                                 onClick={() => setIsOpen(false)}
                                 style={{
                                     textDecoration: 'none',
-                                    color: active ? '#2563eb' : '#334155',
+                                    color: active ? '#2563eb' : 'var(--color-text)',
                                     fontWeight: 700,
                                     padding: '0.7rem 0.85rem',
                                     borderRadius: '12px',
-                                    background: active ? '#eff6ff' : '#f8fafc',
-                                    border: active ? '1px solid #bfdbfe' : '1px solid transparent',
+                                    background: active ? 'var(--color-bg-secondary)' : 'var(--color-bg-card)',
+                                    border: '1px solid var(--color-border)',
                                 }}
                             >
                                 {item.name}
@@ -327,44 +384,61 @@ export default function Navbar() {
                     <div
                         style={{
                             display: 'flex',
-                            flexDirection: 'column',
                             gap: '0.5rem',
                             marginTop: '0.4rem',
                             paddingTop: '0.6rem',
-                            borderTop: '1px solid rgba(15, 23, 42, 0.08)',
+                            borderTop: '1px solid var(--color-border)',
                         }}
                     >
                         <button
-                            type="button"
-                            onClick={() => {
-                                setIsOpen(false);
-                                handleAuthClick();
-                            }}
+                            onClick={toggle}
                             style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
                                 flex: 1,
-                                textAlign: 'center',
-                                border: 'none',
-                                color: '#ffffff',
+                                color: 'var(--color-text)',
                                 fontWeight: 700,
                                 padding: '0.7rem 0.85rem',
                                 borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
-                                cursor: authLoading ? 'wait' : 'pointer',
+                                background: 'var(--color-bg-card)',
+                                border: '1px solid var(--color-border)',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
                             }}
                         >
-                            {authLoading ? 'Memuat...' : user ? 'Logout' : 'Masuk'}
+                            {isDark ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="5" />
+                                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                                </svg>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                </svg>
+                            )}
+                            {isDark ? 'Mode Terang' : 'Mode Gelap'}
                         </button>
-                        {authError ? (
-                            <span
-                                style={{
-                                    fontSize: '0.78rem',
-                                    lineHeight: 1.4,
-                                    color: '#dc2626',
-                                }}
-                            >
-                                {authError}
-                            </span>
-                        ) : null}
+                        <button
+                            onClick={handleAuthClick}
+                            disabled={authLoading}
+                            style={{
+                                flex: 1,
+                                textAlign: 'center',
+                                textDecoration: 'none',
+                                color: user ? 'var(--color-text)' : '#ffffff',
+                                fontWeight: 700,
+                                padding: '0.7rem 0.85rem',
+                                borderRadius: '12px',
+                                background: user ? 'var(--color-bg-card)' : 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                                border: user ? '1px solid var(--color-border)' : 'none',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                            }}
+                        >
+                            {authLoading ? '...' : (user ? 'Keluar' : 'Masuk / Daftar')}
+                        </button>
                     </div>
                 </div>
             )}
@@ -390,7 +464,10 @@ export default function Navbar() {
                         margin-left: -1.5rem;
                     }
                 }
-                .navbar-auth-buttons button:hover {
+                .navbar-auth-buttons button:first-child:hover {
+                    background: #f1f5f9;
+                }
+                .navbar-auth-buttons button:last-child:hover {
                     box-shadow: 0 14px 28px rgba(37, 99, 235, 0.32);
                     transform: translateY(-1px);
                 }
