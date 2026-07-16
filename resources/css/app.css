@@ -83,6 +83,17 @@
     border-color: #334155;
 }
 
-.dark .leaflet-control-zoom a:hover {
+ .dark .leaflet-control-zoom a:hover {
     background: #334155;
 }
+
+/* Cegah efek halaman "geser"/putih melebar ke kiri/kanan akibat overflow */
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+#root {
+    width: 100%;
+}
+

@@ -418,8 +418,9 @@ export default function Navbar() {
                     }
                 }
                 @media (min-width: 769px) {
+                    /* Hindari layout "ketarik" ke kiri yang bisa bikin overflow horizontal */
                     .navbar-logo {
-                        margin-left: -1.5rem;
+                        margin-left: 0;
                     }
                 }
                 .navbar-auth-buttons button:last-child:hover {
