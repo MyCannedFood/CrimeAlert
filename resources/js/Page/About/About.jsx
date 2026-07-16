@@ -213,9 +213,8 @@ export default function About() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
             <div className="rounded-xl p-6" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
               {[
-                { icon: Mail, label: "Email", value: "halo@CrimeAlert.id" },
-                { icon: Phone, label: "Telepon", value: "(021) 555-0192" },
-                { icon: MapPin, label: "Alamat", value: "Jl. Sudirman No. 45, Jakarta Selatan" },
+                { icon: Mail, label: "Email", value: "savero2605@gmail.com" },
+                { icon: Phone, label: "Telepon", value: "+62 878-8605-4252" },
               ].map(({ icon: Icon, label, value }, i, arr) => (
                 <div
                   key={label}

@@ -128,6 +128,31 @@ export const api = {
         .map(([province, v]) => ({ province, total: v.total, max_severity: v.max_severity }))
         .sort((a, b) => b.total - a.total)
     },
+    topActiveProvincesLast30Days: async () => {
+      if (!supabase) return []
+
+      // 30 hari terakhir berdasarkan published
+      const since = new Date(Date.now() - 30 * 86400000).toISOString()
+
+      const { data, error } = await supabase
+        .from('crime_articles')
+        .select('province,published')
+        .gte('published', since)
+
+      if (error || !data) return []
+
+      const provs = {}
+      data.forEach((c) => {
+        const p = c.province || 'Unknown'
+        if (!provs[p]) provs[p] = 0
+        provs[p]++
+      })
+
+      return Object.entries(provs)
+        .map(([province, total]) => ({ province, total }))
+        .sort((a, b) => b.total - a.total)
+    },
+
     trend: async () => {
       if (!supabase) return []
       const { data, error } = await supabase.from('crime_articles').select('published')

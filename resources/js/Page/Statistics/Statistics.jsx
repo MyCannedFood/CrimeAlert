@@ -38,16 +38,19 @@ export default function Statistics() {
         Promise.all([
             api.stats.summary(),
             api.stats.byCategory(),
-            api.stats.byProvince(),
+            api.stats.topActiveProvincesLast30Days(),
             api.stats.trend(),
+
         ])
             .then(([summaryData, catData, provData, trendData]) => {
                 setSummary(summaryData);
+
                 setCategories(catData || []);
                 setProvinces(provData || []);
                 setTrend(trendData || []);
             })
             .catch(() => {})
+
             .finally(() => setLoading(false))
     }, []);
 
@@ -66,13 +69,46 @@ export default function Statistics() {
         total: c.total,
     }));
 
+    // Top Provinsi Teraktif (30 hari terakhir)
+    // Hitung min-max score 0-100 berdasarkan total berita per provinsi
+    const TOP_COLOR = {
+        sedang: 'bg-[#facc15]', // 0-39
+        tinggi: 'bg-[#f97316]', // 40-69
+        bahaya: 'bg-[#dc2626]', // 70-100
+    };
+
     const provinceItems = provinces.map((p, i) => ({
         name: `${i + 1}. ${p.province}`,
         value: p.total,
-        color: SEVERITY_COLORS[p.max_severity] || SEVERITY_COLORS.safe,
     }));
 
+    const provTotals = provinceItems.map((x) => x.value).filter((v) => Number.isFinite(v));
+    const provMin = provTotals.length ? Math.min(...provTotals) : 0;
+    const provMax = provTotals.length ? Math.max(...provTotals) : 0;
+
+    const normalizeScore = (x) => {
+        if (provMax === provMin) return 0; // avoid divide by zero
+        return ((x - provMin) / (provMax - provMin)) * 100;
+    };
+
+    const getRiskCategory = (score) => {
+        if (score >= 70) return 'bahaya';
+        if (score >= 40) return 'tinggi';
+        return 'sedang';
+    };
+
+    const provinceItemsWithScore = provinceItems.map((item) => {
+        const score = Math.max(0, Math.min(100, normalizeScore(item.value)));
+        const category = getRiskCategory(score);
+        return {
+            ...item,
+            score: Math.round(score * 10) / 10,
+            color: TOP_COLOR[category],
+        };
+    });
+
     // ---- Perhitungan untuk Line Chart (Monthly Crime Trend) ----
+
     const chartValues = monthlyTrend.map((d) => d.incidents);
     const rawMin = Math.min(...chartValues);
     const rawMax = Math.max(...chartValues);
@@ -321,26 +357,33 @@ export default function Statistics() {
                                     <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full" />
                                 </div>
                             ))}
-                            {!loading && provinceItems.slice(0, 10).map((prov, i) => {
-                                const maxVal = provinceItems.length > 0 ? provinceItems[0].value : 100;
+                            {!loading && provinceItemsWithScore.slice(0, 10).map((prov, i) => {
+                                const maxVal = provinceItemsWithScore.length > 0 ? provinceItemsWithScore[0].value : 100;
                                 return (
-                                <div key={i} className="flex flex-col">
-                                    <span className="text-xs font-bold text-gray-800 dark:text-slate-200 mb-1">{prov.name}</span>
-                                    <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
-                                        <div className={`${prov.color} h-full rounded-full`} style={{ width: `${(prov.value / maxVal) * 100}%` }}></div>
+                                    <div key={i} className="flex flex-col">
+                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                            <span className="text-xs font-bold text-gray-800 dark:text-slate-200">{prov.name}</span>
+                                            <span className="text-[11px] font-bold text-gray-600 dark:text-slate-300">{Math.round(prov.score)}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                                            <div
+                                                className={`${prov.color} h-full rounded-full`}
+                                                style={{ width: `${(prov.value / maxVal) * 100}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
-                                </div>
                                 );
                             })}
+
                         </div>
 
                         {/* Legend */}
                         <div className="flex items-center space-x-4 mt-8 text-[11px] font-medium text-gray-600 dark:text-slate-400">
-                            <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#22c55e] mr-1"></span> Aman</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#facc15] mr-1"></span> Sedang</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#f97316] mr-1"></span> Tinggi</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#dc2626] mr-1"></span> Bahaya</div>
                         </div>
+
                     </div>
 
                     {/* Map Section */}

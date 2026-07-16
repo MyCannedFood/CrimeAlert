@@ -15,6 +15,7 @@ import {
   Minus,
   LocateFixed,
   ChevronDown,
+  Check,
 } from "lucide-react";
 
 import HeatmapLayer from "../../Components/Map/HeatmapLayer";
@@ -97,23 +98,104 @@ function StatusBadge({ status, isDark }) {
   );
 }
 
-function FilterSelect({ icon: Icon, value, onChange, options }) {
+/**
+ * Custom dropdown that replaces the native <select>.
+ *
+ * Why: native <select> popups are rendered by the OS/browser, not by our
+ * CSS — that's why the old version showed a plain white list with washed
+ * out gray text in dark mode, and gave us zero control over how (or if)
+ * long option lists scroll. This version is a fully-styled, app-rendered
+ * panel, so dark mode contrast and scrolling both behave correctly.
+ *
+ * variant="pill"  -> compact rounded trigger for the desktop toolbar
+ * variant="block" -> full-width field for the mobile filter sheet
+ */
+function Dropdown({ icon: Icon, label, value, onChange, options, variant = "pill" }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleEscape(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  const panel = (
+    <div
+      role="listbox"
+      className="dropdown-scroll absolute z-[1100] mt-2 max-h-64 w-full min-w-[200px] overflow-y-auto rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-800"
+      style={variant === "pill" ? { left: 0 } : undefined}
+    >
+      {options.map((o) => {
+        const active = o === value;
+        return (
+          <button
+            key={o}
+            type="button"
+            role="option"
+            aria-selected={active}
+            onClick={() => {
+              onChange(o);
+              setOpen(false);
+            }}
+            className={`flex w-full items-center justify-between gap-2 px-3.5 py-2 text-left text-[13.5px] font-medium transition-colors ${
+              active
+                ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400"
+                : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/70"
+            }`}
+          >
+            <span className="truncate">{o}</span>
+            {active && <Check className="h-3.5 w-3.5 shrink-0" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  if (variant === "block") {
+    return (
+      <div ref={rootRef} className="relative">
+        {label && (
+          <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {label}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3 text-left dark:border-slate-700"
+        >
+          <Icon className="h-4 w-4 shrink-0 text-slate-400" />
+          <span className="flex-1 truncate text-[14px] font-medium text-slate-900 dark:text-slate-200">{value}</span>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+        {open && panel}
+      </div>
+    );
+  }
+
   return (
-    <label className="flex shrink-0 items-center gap-2 rounded-full bg-white dark:bg-slate-800 px-4 py-2.5 text-[13px] font-semibold text-slate-900 dark:text-slate-100 shadow-md cursor-pointer border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
-      <Icon className="h-[15px] w-[15px]" style={{ color: COLORS.primary }} />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none bg-transparent pr-1 outline-none font-medium text-slate-800 dark:text-slate-200"
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 rounded-full border border-slate-100 bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-md transition-colors hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
       >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-    </label>
+        <Icon className="h-[15px] w-[15px]" style={{ color: COLORS.primary }} />
+        <span className="max-w-[150px] truncate">{value}</span>
+        <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && panel}
+    </div>
   );
 }
 
@@ -284,6 +366,11 @@ export default function MapPage() {
     return filteredCrimes.map((c) => [c.latitude, c.longitude, intensityMap[c.severity] || 0.5]);
   }, [filteredCrimes]);
 
+  // Reset city filter if it's no longer valid for the selected province
+  useEffect(() => {
+    if (!CITY_OPTIONS.includes(selectedCity)) setSelectedCity("Semua Kota");
+  }, [CITY_OPTIONS, selectedCity]);
+
   const handleViewNews = (crime) => {
     navigate(`/news?query=${encodeURIComponent(crime.title)}`);
   };
@@ -293,13 +380,33 @@ export default function MapPage() {
       className="relative w-full overflow-hidden bg-slate-100 dark:bg-slate-900"
       style={{ height: "calc(100dvh - 4.5rem)", maxHeight: "calc(100dvh - 4.5rem)", overflow: "hidden", fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      {/* Dynamic Keyframe Injection for Ping Animation */}
+      {/* Dynamic Keyframe Injection + custom dropdown scrollbar styling */}
       <style>{`
         @keyframes ping {
           75%, 100% {
             transform: scale(2);
             opacity: 0;
           }
+        }
+        .dropdown-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .dropdown-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .dropdown-scroll::-webkit-scrollbar-thumb {
+          background: #CBD5E1;
+          border-radius: 9999px;
+        }
+        .dark .dropdown-scroll::-webkit-scrollbar-thumb {
+          background: #475569;
+        }
+        .dropdown-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #CBD5E1 transparent;
+        }
+        .dark .dropdown-scroll {
+          scrollbar-color: #475569 transparent;
         }
       `}</style>
 
@@ -372,19 +479,19 @@ export default function MapPage() {
           )}
         </div>
 
-        <FilterSelect
+        <Dropdown
           icon={MapPin}
           value={selectedProvince}
           onChange={setSelectedProvince}
           options={PROVINCE_OPTIONS}
         />
-        <FilterSelect
+        <Dropdown
           icon={Globe2}
           value={selectedCity}
           onChange={setSelectedCity}
           options={CITY_OPTIONS}
         />
-        <FilterSelect
+        <Dropdown
           icon={CalendarDays}
           value={selectedTimeRange}
           onChange={setSelectedTimeRange}
@@ -447,53 +554,32 @@ export default function MapPage() {
             </div>
 
             <div className="space-y-3">
-              <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Provinsi</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3">
-                  <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
-                  <select
-                    value={selectedProvince}
-                    onChange={(e) => setSelectedProvince(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 dark:text-slate-200 outline-none"
-                  >
-                    {PROVINCE_OPTIONS.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <Dropdown
+                variant="block"
+                label="Provinsi"
+                icon={MapPin}
+                value={selectedProvince}
+                onChange={setSelectedProvince}
+                options={PROVINCE_OPTIONS}
+              />
 
-              <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kota</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3">
-                  <Globe2 className="h-4 w-4 shrink-0 text-slate-400" />
-                  <select
-                    value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 dark:text-slate-200 outline-none"
-                  >
-                    {CITY_OPTIONS.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <Dropdown
+                variant="block"
+                label="Kota"
+                icon={Globe2}
+                value={selectedCity}
+                onChange={setSelectedCity}
+                options={CITY_OPTIONS}
+              />
 
-              <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rentang Waktu</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3">
-                  <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
-                  <select
-                    value={selectedTimeRange}
-                    onChange={(e) => setSelectedTimeRange(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 dark:text-slate-200 outline-none"
-                  >
-                    {TIME_OPTIONS.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <Dropdown
+                variant="block"
+                label="Rentang Waktu"
+                icon={CalendarDays}
+                value={selectedTimeRange}
+                onChange={setSelectedTimeRange}
+                options={TIME_OPTIONS}
+              />
 
               <button
                 onClick={() => setHeatmapOn((v) => !v)}
