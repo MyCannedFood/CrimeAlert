@@ -1,57 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '../../utils/api';
 
-const nearestItems = [
-    {
-        category: 'Pencurian',
-        title: 'Kejadian pencurian motor di dekat stasiun kereta yang cukup ramai penumpang',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Waspada',
-        title: 'Tindak kriminal ringan terjadi di area taman kota pada malam hari',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Penipuan',
-        title: 'Laporan penipuan online berkedok kurir paket mengincar warga sekitar',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Kekerasan',
-        title: 'Perselisihan warga berujung keributan kecil di gang permukiman',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Pencurian',
-        title: 'Pencurian kendaraan bermotor terjadi saat pemilik lengah di parkiran',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Waspada',
-        title: 'Warga diminta waspada modus penipuan berkedok petugas resmi',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Penipuan',
-        title: 'Modus penipuan transfer dana palsu kembali marak di sekitar wilayah ini',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-    {
-        category: 'Kekerasan',
-        title: 'Insiden kecil di area publik memicu kehadiran petugas keamanan setempat',
-        author: 'Floyd Miles',
-        time: '3 Hari lalu',
-    },
-];
+const ITEMS_PER_PAGE = 8;
 
-const TOTAL_PAGES = 5;
+function timeAgo(dateStr) {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHours < 1) return 'Baru saja';
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    return date.toLocaleDateString('id-ID');
+}
 
 // Consistent edge padding for header, grid, and pagination once the section
 // breaks out to full viewport width (same approach as LatestNewsSection).
@@ -77,6 +39,19 @@ function LocationPinIcon() {
 
 export default function NearestNewsSection() {
     const [activePage, setActivePage] = useState(1);
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api.crimes.list()
+            .then((data) => setItems(data || []))
+            .catch(() => setItems([]))
+            .finally(() => setLoading(false))
+    }, []);
+
+    const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+    const startIdx = (activePage - 1) * ITEMS_PER_PAGE;
+    const pageItems = items.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
     return (
         <section
@@ -166,7 +141,22 @@ export default function NearestNewsSection() {
                     paddingRight: EDGE_PADDING,
                 }}
             >
-                {nearestItems.map((item, index) => (
+                {loading && Array.from({ length: 4 }).map((_, i) => (
+                    <div key={`skeleton-${i}`} style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                        <div style={{ height: '14rem', width: '100%', background: '#E2E8F0' }} />
+                        <div style={{ padding: '1.25rem' }}>
+                            <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', marginBottom: '0.75rem', width: '80%' }} />
+                            <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', width: '60%' }} />
+                            <div style={{ height: '0.75rem', background: '#E2E8F0', borderRadius: '4px', marginTop: '1.5rem', width: '40%' }} />
+                        </div>
+                    </div>
+                ))}
+                {!loading && pageItems.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1', padding: '2rem', color: '#94A3B8', textAlign: 'center' }}>
+                        Belum ada data kriminal terdekat
+                    </div>
+                )}
+                {pageItems.map((item, index) => (
                     <div
                         key={index}
                         style={{
@@ -235,14 +225,15 @@ export default function NearestNewsSection() {
                                     fontWeight: 500,
                                 }}
                             >
-                                <span>{item.author}</span>
-                                <span>{item.time}</span>
+                                <span>{item.source || 'Sumber tidak diketahui'}</span>
+                                <span>{timeAgo(item.date)}</span>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
+            {!loading && items.length > ITEMS_PER_PAGE && (
             <div
                 style={{
                     display: 'flex',
@@ -258,6 +249,7 @@ export default function NearestNewsSection() {
                 <button
                     type="button"
                     onClick={() => setActivePage((p) => Math.max(1, p - 1))}
+                    disabled={activePage === 1}
                     aria-label="Halaman sebelumnya"
                     style={{
                         width: '34px',
@@ -265,9 +257,9 @@ export default function NearestNewsSection() {
                         borderRadius: '50%',
                         border: 'none',
                         background: 'transparent',
-                        color: '#94A3B8',
+                        color: activePage === 1 ? '#CBD5E1' : '#94A3B8',
                         fontSize: '1rem',
-                        cursor: 'pointer',
+                        cursor: activePage === 1 ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -276,7 +268,7 @@ export default function NearestNewsSection() {
                     {'\u2039'}
                 </button>
 
-                {Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1).map((page) => (
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                         key={page}
                         type="button"
@@ -299,7 +291,8 @@ export default function NearestNewsSection() {
 
                 <button
                     type="button"
-                    onClick={() => setActivePage((p) => Math.min(TOTAL_PAGES, p + 1))}
+                    onClick={() => setActivePage((p) => Math.min(totalPages, p + 1))}
+                    disabled={activePage === totalPages}
                     aria-label="Halaman berikutnya"
                     style={{
                         width: '34px',
@@ -307,9 +300,9 @@ export default function NearestNewsSection() {
                         borderRadius: '50%',
                         border: 'none',
                         background: 'transparent',
-                        color: '#334155',
+                        color: activePage === totalPages ? '#CBD5E1' : '#334155',
                         fontSize: '1rem',
-                        cursor: 'pointer',
+                        cursor: activePage === totalPages ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -318,6 +311,7 @@ export default function NearestNewsSection() {
                     {'\u203A'}
                 </button>
             </div>
+            )}
             </div>
 
             <style>{`

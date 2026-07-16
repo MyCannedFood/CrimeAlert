@@ -1,41 +1,30 @@
-const newsItems = [
-    {
-        category: 'Pencurian',
-        title: 'Laporan pencurian motor di area pusat kota meningkat dalam 24 jam terakhir',
-        author: 'Rina Putri',
-        time: '3 jam lalu',
-    },
-    {
-        category: 'Penipuan',
-        title: 'Modus penipuan online berkedok pemberitahuan resmi kembali mencuat',
-        author: 'Dimas Arka',
-        time: '5 jam lalu',
-    },
-    {
-        category: 'Kekerasan',
-        title: 'Insiden bentrokan di pasar tradisional menimbulkan kerusuhan ringan',
-        author: 'Sari Wulandari',
-        time: '7 jam lalu',
-    },
-    {
-        category: 'Penggelapan',
-        title: 'Kasus penggelapan dana bantuan sosial sedang dalam penyelidikan',
-        author: 'Hendra N',
-        time: '9 jam lalu',
-    },
-    {
-        category: 'Lalu Lintas',
-        title: 'Kecelakaan beruntun di tol utama mengakibatkan penutupan sementara',
-        author: 'Ayu Lestari',
-        time: '12 jam lalu',
-    },
-];
+import { useState, useEffect } from 'react';
+import { api } from '../../utils/api';
 
-// Consistent edge padding used by both the header row and the card row,
-// so they stay aligned once the section breaks out to full viewport width.
+function timeAgo(dateStr) {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHours < 1) return 'Baru saja';
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    return date.toLocaleDateString('id-ID');
+}
+
 const EDGE_PADDING = 'clamp(1.25rem, 4vw, 3rem)';
 
 export default function LatestNewsSection() {
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api.crimes.list({ per_page: 5 })
+            .then((data) => setItems(data || []))
+            .catch(() => setItems([]))
+            .finally(() => setLoading(false))
+    }, []);
     return (
         <section
             style={{
@@ -114,7 +103,36 @@ export default function LatestNewsSection() {
                         WebkitOverflowScrolling: 'touch',
                     }}
                 >
-                    {newsItems.map((item, index) => (
+                    {loading && Array.from({ length: 3 }).map((_, i) => (
+                        <div
+                            key={`skeleton-${i}`}
+                            className="news-skeleton"
+                            style={{
+                                background: '#FFFFFF',
+                                border: '1px solid #E5E7EB',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                boxSizing: 'border-box',
+                                flex: '0 0 auto',
+                                width: '272px',
+                                scrollSnapAlign: 'start',
+                            }}
+                        >
+                            <div style={{ height: '14rem', width: '100%', background: '#E2E8F0' }} />
+                            <div style={{ padding: '1.25rem' }}>
+                                <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', marginBottom: '0.75rem', width: '80%' }} />
+                                <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', width: '60%' }} />
+                                <div style={{ height: '0.75rem', background: '#E2E8F0', borderRadius: '4px', marginTop: '1.5rem', width: '40%' }} />
+                            </div>
+                        </div>
+                    ))}
+                    {!loading && items.length === 0 && (
+                        <div style={{ padding: '2rem 1rem', color: '#94A3B8', textAlign: 'center', width: '100%' }}>
+                            Belum ada berita terbaru
+                        </div>
+                    )}
+                    {items.map((item, index) => (
                         <div
                             key={index}
                             className="news-card"
@@ -188,8 +206,8 @@ export default function LatestNewsSection() {
                                         fontWeight: 500,
                                     }}
                                 >
-                                    <span>{item.author}</span>
-                                    <span>{item.time}</span>
+                                    <span>{item.source || 'Sumber tidak diketahui'}</span>
+                                    <span>{timeAgo(item.date)}</span>
                                 </div>
                             </div>
                         </div>

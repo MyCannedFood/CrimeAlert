@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import HeatmapLayer from './HeatmapLayer';
-import { MOCK_CRIMES } from '../../data/crimeData';
+import { api } from '../../utils/api';
 
 export default function MiniMap({
   height = '400px',
@@ -10,15 +10,27 @@ export default function MiniMap({
   showHeatmap = true,
   interactive = false,
   className = '',
+  crimes: propCrimes = null,
 }) {
+  const [fetchedCrimes, setFetchedCrimes] = useState([]);
+
+  useEffect(() => {
+    if (propCrimes) return;
+    api.crimes.list()
+      .then((data) => setFetchedCrimes(data || []))
+      .catch(() => setFetchedCrimes([]))
+  }, [propCrimes]);
+
+  const crimes = propCrimes || fetchedCrimes;
+
   const heatmapPoints = useMemo(() => {
     const intensityMap = { safe: 0.3, moderate: 0.6, high: 0.8, danger: 1.0 };
-    return MOCK_CRIMES.map((c) => [
+    return crimes.map((c) => [
       c.latitude,
       c.longitude,
       intensityMap[c.severity] || 0.5,
     ]);
-  }, []);
+  }, [crimes]);
 
   return (
     <div

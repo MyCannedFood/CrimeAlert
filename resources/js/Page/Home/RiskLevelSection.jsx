@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MiniMap from '../../Components/Map/MiniMap';
+import { api } from '../../utils/api';
 
 const LEGEND = [
     { label: 'Aman', color: '#22C55E' },
@@ -32,6 +33,14 @@ const EDGE_PADDING = 'clamp(1.25rem, 4vw, 3rem)';
 const MAP_EDGE_PADDING = 'clamp(0.5rem, 1.5vw, 1.25rem)';
 
 export default function RiskLevelSection() {
+    const [crimes, setCrimes] = useState([]);
+
+    useEffect(() => {
+        api.crimes.list()
+            .then((data) => setCrimes(data || []))
+            .catch(() => setCrimes([]))
+    }, []);
+
     return (
         <section
             style={{
@@ -130,7 +139,7 @@ export default function RiskLevelSection() {
                     }}
                 >
                     <div style={{ position: 'absolute', inset: 0 }}>
-                        <MiniMap height="100%" showHeatmap={true} interactive={false} />
+                        <MiniMap height="100%" showHeatmap={true} interactive={false} crimes={crimes} />
                     </div>
                 </div>
 

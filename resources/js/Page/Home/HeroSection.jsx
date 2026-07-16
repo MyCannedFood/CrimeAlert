@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../utils/api';
 
 export default function HeroSection() {
     const navigate = useNavigate();
     const [userCity, setUserCity] = useState('Mendeteksi lokasi...');
     const [userLocation, setUserLocation] = useState(null);
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!navigator.geolocation) {
@@ -49,10 +52,17 @@ export default function HeroSection() {
         );
     }, []);
 
+    useEffect(() => {
+        api.stats.summary()
+            .then(setSummary)
+            .catch(() => setSummary(null))
+            .finally(() => setLoading(false))
+    }, []);
+
     const stats = [
         {
             label: 'Laporan Hari Ini',
-            value: '1.284',
+            value: loading ? '-' : (summary?.total_cases ?? '0').toLocaleString('id-ID'),
             iconBg: '#DBEAFE',
             iconColor: '#2563EB',
             icon: (
@@ -62,7 +72,7 @@ export default function HeroSection() {
         },
         {
             label: 'Daerah Terpantau',
-            value: '38',
+            value: loading ? '-' : (summary?.high_risk_regions ?? '0').toLocaleString('id-ID'),
             iconBg: '#FFEDD5',
             iconColor: '#F97316',
             icon: <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />,
@@ -72,19 +82,19 @@ export default function HeroSection() {
                     <path d="M12 3c2.5 2.5 3.8 5.7 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.7-3.8-9s1.3-6.5 3.8-9z" />
                 </>
             ),
-            sub: { text: '3% VS Minggu Lalu', color: '#16A34A', direction: 'down' },
+            sub: null,
         },
         {
-            label: 'Berita Terverifikasi',
-            value: '96%',
+            label: 'Kasus Terselesaikan',
+            value: loading ? '-' : (summary?.resolved_cases ?? '0').toLocaleString('id-ID'),
             iconBg: '#DCFCE7',
             iconColor: '#22C55E',
             icon: <path d="M20 6 9 17l-5-5" />,
             sub: null,
         },
         {
-            label: 'Sumber Media Resmi',
-            value: '12',
+            label: 'Rata-rata Kasus/Hari',
+            value: loading ? '-' : (summary?.avg_daily_cases ?? '0').toLocaleString('id-ID'),
             iconBg: '#F1F5F9',
             iconColor: '#94A3B8',
             icon: (

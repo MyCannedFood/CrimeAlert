@@ -20,7 +20,7 @@ import {
 import HeatmapLayer from "../../Components/Map/HeatmapLayer";
 import MapEventHandler from "../../Components/Map/MapEventHandler";
 import CrimeMarkerPopup from "../../Components/Map/CrimeMarkerPopup";
-import { MOCK_CRIMES } from "../../data/crimeData";
+import { api } from "../../utils/api";
 
 /* ---------------------------------------------------------------------
    Design tokens & maps
@@ -188,6 +188,8 @@ function MapFocusController({ targetLocation }) {
 export default function MapPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [crimes, setCrimes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("Semua Provinsi");
   const [selectedCity, setSelectedCity] = useState("Semua Kota");
@@ -196,6 +198,13 @@ export default function MapPage() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [bounds, setBounds] = useState(null);
   const [targetLocation, setTargetLocation] = useState(null);
+
+  useEffect(() => {
+    api.crimes.list()
+      .then((data) => setCrimes(data || []))
+      .catch(() => setCrimes([]))
+      .finally(() => setLoading(false))
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -213,34 +222,57 @@ export default function MapPage() {
     setTargetLocation(null);
   }, [location.search]);
 
-  // Available options derived from data
-  const PROVINCE_OPTIONS = ["Semua Provinsi", "DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Sumatera Utara", "Sulawesi Selatan", "Bali", "Kalimantan Timur"];
-  const CITY_OPTIONS = ["Semua Kota", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Barat", "Bandung", "Depok", "Surabaya", "Surakarta", "Medan", "Makassar", "Denpasar", "Balikpapan"];
+  // Available options derived from actual data
+  const PROVINCE_OPTIONS = useMemo(() => {
+    const provinces = [...new Set(crimes.map((c) => c.province).filter(Boolean))];
+    return ["Semua Provinsi", ...provinces.sort()];
+  }, [crimes]);
+
+  const CITY_OPTIONS = useMemo(() => {
+    const filtered = selectedProvince !== "Semua Provinsi"
+      ? crimes.filter((c) => c.province === selectedProvince)
+      : crimes;
+    const cities = [...new Set(filtered.map((c) => c.city).filter(Boolean))];
+    return ["Semua Kota", ...cities.sort()];
+  }, [crimes, selectedProvince]);
+
   const TIME_OPTIONS = ["30 Hari Terakhir", "7 Hari Terakhir", "3 Bulan Terakhir"];
 
   // Filtered crime dataset based on active filters
   const filteredCrimes = useMemo(() => {
-    return MOCK_CRIMES.filter((crime) => {
-      // Search text filter
+    return crimes.filter((crime) => {
       if (
         searchQuery &&
         !crime.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !crime.city.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !crime.province.toLowerCase().includes(searchQuery.toLowerCase())
+        !crime.city?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !crime.province?.toLowerCase().includes(searchQuery.toLowerCase())
       ) {
         return false;
       }
-      // Province filter
       if (selectedProvince !== "Semua Provinsi" && crime.province !== selectedProvince) {
         return false;
       }
-      // City filter
       if (selectedCity !== "Semua Kota" && crime.city !== selectedCity) {
         return false;
       }
+      if (selectedTimeRange === "7 Hari Terakhir") {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        if (new Date(crime.date) < weekAgo) return false;
+      }
+      if (selectedTimeRange === "30 Hari Terakhir") {
+        const monthAgo = new Date();
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        if (new Date(crime.date) < monthAgo) return false;
+      }
+      if (selectedTimeRange === "3 Bulan Terakhir") {
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        if (new Date(crime.date) < threeMonthsAgo) return false;
+      }
       return true;
     });
-  }, [searchQuery, selectedProvince, selectedCity, selectedTimeRange]);
+  }, [crimes, searchQuery, selectedProvince, selectedCity, selectedTimeRange]);
 
   // Convert filtered crimes to heatmap points array [lat, lng, intensity]
   const heatmapPoints = useMemo(() => {
@@ -285,6 +317,16 @@ export default function MapPage() {
 
         {/* Heatmap Layer */}
         {heatmapOn && <HeatmapLayer points={heatmapPoints} />}
+
+        {/* Loading overlay */}
+        {loading && (
+          <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/60">
+            <div className="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg border border-slate-200">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <span className="text-sm font-semibold text-slate-600">Memuat data...</span>
+            </div>
+          </div>
+        )}
 
         {/* Marker Clustering Group */}
         <MarkerClusterGroup chunkedLoading maxClusterRadius={40}>
