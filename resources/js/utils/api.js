@@ -13,6 +13,7 @@ function mapArticle(item) {
     longitude: item.longitude,
     category: item.crime_type || item.category || '',
     severity: item.severity || 'safe',
+    published: item.published || item.date || '',
     date: item.published || item.date || '',
     description: item.description || item.summary || '',
     url: item.url || '',
@@ -67,9 +68,9 @@ export const api = {
     },
     show: async (id) => {
       if (!supabase) return null
-      const { data, error } = await supabase.from('crime_articles').select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary').eq('id', id).single()
+      const { data, error } = await supabase.from('crime_articles').select('id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary,content').eq('id', id).single()
       if (error || !data) return null
-      return mapArticle(data)
+      return { ...mapArticle(data), content: data.content || data.summary || '' }
     },
     latest: async (limit = 20) => {
       if (!supabase) return []

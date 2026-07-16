@@ -262,7 +262,7 @@ export default function Artikel({
       <div className="mx-auto max-w-[1240px] px-6 py-10">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
           {/* main column */}
-          <div>
+          <div className="min-w-0">
             <CoverImage
               src={article.image_url}
               alt={article.title}

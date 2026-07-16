@@ -10,6 +10,7 @@ import Statistics from './Page/Statistics/Statistics';
 import About from './Page/About/About';
 import Report from './Page/Report/Report';
 import ReportDetail from './Page/Report/ReportDetail';
+import ArticlePage from './Page/News/ArticlePage';
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/laporan/:id" element={<ReportDetail />} />
                     <Route path="/statistik" element={<Statistics />} />
                     <Route path="/tentang" element={<About />} />
+                    <Route path="/berita/:id" element={<ArticlePage />} />
                 </Routes>
             </BrowserRouter>
         </DarkModeProvider>

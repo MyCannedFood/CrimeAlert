@@ -65,6 +65,9 @@ class ScrapeNews extends Command
                     'source' => 'scraper:' . ($article['source'] ?? 'unknown'),
                     'url' => $article['url'] ?? '',
                     'description' => $article['summary'] ?? '',
+                    'summary' => $article['summary'] ?? '',
+                    'content' => $article['content'] ?? '',
+                    'image_url' => $article['image_url'] ?? '',
                     'relevance_score' => $article['relevance_score'] ?? 0,
                     'status' => 'reported',
                 ];

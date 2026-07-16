@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 
 function timeAgo(dateStr) {
@@ -18,6 +19,8 @@ const EDGE_PADDING = 'clamp(1.25rem, 4vw, 3rem)';
 export default function LatestNewsSection() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [brokenImgs, setBrokenImgs] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         api.crimes.list({ per_page: 5 })
@@ -132,33 +135,49 @@ export default function LatestNewsSection() {
                             Belum ada berita terbaru
                         </div>
                     )}
-                    {items.map((item, index) => (
+                    {items.map((item) => (
                         <div
-                            key={index}
+                            key={item.id}
+                            onClick={() => navigate(`/berita/${item.id}`)}
                             className="news-card"
                             style={{
                                 background: 'var(--color-bg-card)',
-                                    border: '1px solid var(--color-card-border)',
-                                    borderRadius: 0,
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    boxSizing: 'border-box',
-                                    flex: '0 0 auto',
-                                    width: '272px',
-                                    scrollSnapAlign: 'start',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                border: '1px solid var(--color-card-border)',
+                                borderRadius: 0,
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                boxSizing: 'border-box',
+                                flex: '0 0 auto',
+                                width: '272px',
+                                scrollSnapAlign: 'start',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                cursor: 'pointer',
+                                transition: 'box-shadow 0.2s, transform 0.2s',
                             }}
                         >
                             <div
                                 style={{
                                     height: '14rem',
                                     width: '100%',
-                                    background: '#9CA3AF',
+                                    background: '#E2E8F0',
                                     position: 'relative',
                                     flexShrink: 0,
+                                    overflow: 'hidden',
                                 }}
                             >
+                                {item.image_url && !brokenImgs[item.id] ? (
+                                    <img
+                                        src={item.image_url}
+                                        alt={item.title}
+                                        onError={() => setBrokenImgs((p) => ({ ...p, [item.id]: true }))}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '13px', fontWeight: 500 }}>
+                                        Gambar tidak tersedia
+                                    </div>
+                                )}
                                 <div
                                     style={{
                                         position: 'absolute',
@@ -224,6 +243,10 @@ export default function LatestNewsSection() {
                     display: none;
                     width: 0;
                     height: 0;
+                }
+                .news-card:hover {
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+                    transform: translateY(-2px);
                 }
                 @media (max-width: 640px) {
                     .news-card {
