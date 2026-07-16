@@ -84,8 +84,9 @@ export const api = {
         .select(
           'id,title,crime_type,severity,latitude,longitude,province,city,published,source,trend,description,status,url,image_url,relevance_score,summary'
         )
-        // Primary: semantic incident time.
+        // Primary: semantic incident time, secondary: newest id as tiebreaker
         .order('published', { ascending: false })
+        .order('id', { ascending: false })
         .limit(limit)
 
       if (error) {
