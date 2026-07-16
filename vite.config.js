@@ -21,9 +21,12 @@ export default defineConfig({
         jsxImportSource: 'react',
     },
     server: {
-        host: '127.0.0.1',
+        host: 'localhost',
         port: 5173,
         strictPort: true,
+        hmr: {
+            host: 'localhost',
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
