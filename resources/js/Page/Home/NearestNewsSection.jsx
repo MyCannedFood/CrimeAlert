@@ -53,6 +53,26 @@ export default function NearestNewsSection() {
     const startIdx = (activePage - 1) * ITEMS_PER_PAGE;
     const pageItems = items.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
+    const PAGINATION_WINDOW = 5;
+    const getVisiblePages = (current, total) => {
+        const clampedTotal = Math.max(1, total);
+        const windowSize = Math.min(PAGINATION_WINDOW, clampedTotal);
+
+        const start = Math.max(
+            1,
+            Math.min(
+                current - Math.floor(windowSize / 2),
+                clampedTotal - windowSize + 1
+            )
+        );
+        const end = Math.min(clampedTotal, start + windowSize - 1);
+
+        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    };
+
+    const visiblePages = getVisiblePages(activePage, totalPages);
+
+
     return (
         <section
             style={{
@@ -250,65 +270,35 @@ export default function NearestNewsSection() {
                     type="button"
                     onClick={() => setActivePage((p) => Math.max(1, p - 1))}
                     disabled={activePage === 1}
+                    className={`p-2 ${activePage === 1 ? 'text-gray-300 dark:text-slate-600 cursor-not-allowed' : 'text-black dark:text-slate-300 hover:text-gray-700 dark:hover:text-slate-400'} transition-colors`}
                     aria-label="Halaman sebelumnya"
-                    style={{
-                        width: '34px',
-                        height: '34px',
-                        borderRadius: '50%',
-                        border: 'none',
-                        background: 'transparent',
-                        color: activePage === 1 ? '#CBD5E1' : '#94A3B8',
-                        fontSize: '1rem',
-                        cursor: activePage === 1 ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
                 >
-                    {'\u2039'}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                {visiblePages.map((page) => (
                     <button
                         key={page}
                         type="button"
                         onClick={() => setActivePage(page)}
-                        style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            background: activePage === page ? '#2563EB' : 'transparent',
-                            color: activePage === page ? '#FFFFFF' : 'var(--color-text)',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
-                        }}
+                        className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded-sm transition-colors ${activePage === page ? 'bg-[#0ea5e9] text-white' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
                     >
                         {page}
                     </button>
                 ))}
 
-                <button
+                    <button
                     type="button"
                     onClick={() => setActivePage((p) => Math.min(totalPages, p + 1))}
                     disabled={activePage === totalPages}
+                    className={`p-2 ${activePage === totalPages ? 'text-gray-300 dark:text-slate-600 cursor-not-allowed' : 'text-black dark:text-slate-300 hover:text-gray-700 dark:hover:text-slate-400'} transition-colors`}
                     aria-label="Halaman berikutnya"
-                    style={{
-                        width: '34px',
-                        height: '34px',
-                        borderRadius: '50%',
-                        border: 'none',
-                        background: 'transparent',
-                        color: activePage === totalPages ? '#CBD5E1' : '#334155',
-                        fontSize: '1rem',
-                        cursor: activePage === totalPages ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
                 >
-                    {'\u203A'}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                 </button>
             </div>
             )}

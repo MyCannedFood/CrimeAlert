@@ -46,6 +46,25 @@ export default function News() {
     const startIdx = (activePage - 1) * ITEMS_PER_PAGE;
     const pageItems = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
+    const PAGINATION_WINDOW = 5;
+    const getVisiblePages = (current, total) => {
+        const clampedTotal = Math.max(1, total);
+        const windowSize = Math.min(PAGINATION_WINDOW, clampedTotal);
+
+        const start = Math.max(
+            1,
+            Math.min(
+                current - Math.floor(windowSize / 2),
+                clampedTotal - windowSize + 1
+            )
+        );
+        const end = Math.min(clampedTotal, start + windowSize - 1);
+
+        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    };
+
+    const visiblePages = getVisiblePages(activePage, totalPages);
+
     const handleSearch = (e) => {
         e.preventDefault();
         setActivePage(1);
@@ -145,7 +164,7 @@ export default function News() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    {visiblePages.map((page) => (
                         <button
                             key={page}
                             onClick={() => setActivePage(page)}
