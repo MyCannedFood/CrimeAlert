@@ -1,5 +1,6 @@
 import React from 'react';
 import MiniMap from '../../Components/Map/MiniMap';
+import Footer from '../../Components/Footer';
 
 export default function Statistics() {
     const summaryData = [
@@ -219,6 +220,7 @@ export default function Statistics() {
 
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

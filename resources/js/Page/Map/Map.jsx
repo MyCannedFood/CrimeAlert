@@ -178,7 +178,6 @@ export default function MapPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("Semua Provinsi");
   const [selectedCity, setSelectedCity] = useState("Semua Kota");
-  const [selectedCategory, setSelectedCategory] = useState("Semua Jenis Kejahatan");
   const [selectedTimeRange, setSelectedTimeRange] = useState("30 Hari Terakhir");
   const [heatmapOn, setHeatmapOn] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -187,7 +186,6 @@ export default function MapPage() {
   // Available options derived from data
   const PROVINCE_OPTIONS = ["Semua Provinsi", "DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Sumatera Utara", "Sulawesi Selatan", "Bali", "Kalimantan Timur"];
   const CITY_OPTIONS = ["Semua Kota", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Barat", "Bandung", "Depok", "Surabaya", "Surakarta", "Medan", "Makassar", "Denpasar", "Balikpapan"];
-  const CATEGORY_OPTIONS = ["Semua Jenis Kejahatan", "Pencurian", "Kekerasan", "Narkoba", "Penipuan Online"];
   const TIME_OPTIONS = ["30 Hari Terakhir", "7 Hari Terakhir", "3 Bulan Terakhir"];
 
   // Filtered crime dataset based on active filters
@@ -210,13 +208,9 @@ export default function MapPage() {
       if (selectedCity !== "Semua Kota" && crime.city !== selectedCity) {
         return false;
       }
-      // Category filter
-      if (selectedCategory !== "Semua Jenis Kejahatan" && crime.category !== selectedCategory) {
-        return false;
-      }
       return true;
     });
-  }, [searchQuery, selectedProvince, selectedCity, selectedCategory, selectedTimeRange]);
+  }, [searchQuery, selectedProvince, selectedCity, selectedTimeRange]);
 
   // Convert filtered crimes to heatmap points array [lat, lng, intensity]
   const heatmapPoints = useMemo(() => {
@@ -231,7 +225,7 @@ export default function MapPage() {
   return (
     <div
       className="relative w-full overflow-hidden bg-slate-100"
-      style={{ height: "100dvh", fontFamily: "Inter, system-ui, sans-serif" }}
+      style={{ height: "calc(100dvh - 4.5rem)", maxHeight: "calc(100dvh - 4.5rem)", overflow: "hidden", fontFamily: "Inter, system-ui, sans-serif" }}
     >
       {/* Dynamic Keyframe Injection for Ping Animation */}
       <style>{`
@@ -312,12 +306,6 @@ export default function MapPage() {
           value={selectedCity}
           onChange={setSelectedCity}
           options={CITY_OPTIONS}
-        />
-        <FilterSelect
-          icon={ShieldAlert}
-          value={selectedCategory}
-          onChange={setSelectedCategory}
-          options={CATEGORY_OPTIONS}
         />
         <FilterSelect
           icon={CalendarDays}
@@ -408,22 +396,6 @@ export default function MapPage() {
                     className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
                   >
                     {CITY_OPTIONS.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Jenis Kejahatan</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
-                  <ShieldAlert className="h-4 w-4 shrink-0 text-slate-400" />
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
-                  >
-                    {CATEGORY_OPTIONS.map((o) => (
                       <option key={o} value={o}>{o}</option>
                     ))}
                   </select>

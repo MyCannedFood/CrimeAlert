@@ -1,4 +1,5 @@
 import React from 'react';
+import Footer from '../../Components/Footer';
 
 export default function News() {
     const newsItems = [
@@ -75,15 +76,6 @@ export default function News() {
                         </svg>
                     </div>
 
-                    {/* Filter 2 */}
-                    <div className="relative">
-                        <select className="border border-gray-300 bg-white text-sm py-2 pl-4 pr-10 outline-none appearance-none rounded-md w-full md:w-56 cursor-pointer">
-                            <option>Semua Jenis Kejahatan</option>
-                        </select>
-                        <svg className="w-4 h-4 text-gray-600 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
                 </div>
 
                 {/* Grid Articles */}
@@ -127,6 +119,7 @@ export default function News() {
                     </button>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

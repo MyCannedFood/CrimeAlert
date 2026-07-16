@@ -2,6 +2,7 @@ import HeroSection from './HeroSection';
 import LatestNewsSection from './LatestNewsSection';
 import RiskLevelSection from './RiskLevelSection';
 import NearestNewsSection from './NearestNewsSection';
+import Footer from '../../Components/Footer';
 
 export default function Home() {
     return (
@@ -48,6 +49,7 @@ export default function Home() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }
