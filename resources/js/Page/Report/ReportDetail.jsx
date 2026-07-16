@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-    ArrowLeft, 
-    MapPin, 
-    Tag, 
-    User, 
-    Clock, 
-    CheckCircle2, 
+import {
+    ArrowLeft,
+    MapPin,
+    Tag,
+    User,
+    Clock,
+    CheckCircle2,
     AlertCircle,
-    ThumbsUp 
+    ThumbsUp,
+    ImageOff
 } from 'lucide-react';
 import Footer from '../../Components/Footer';
 import { api } from '../../utils/api';
+import { fetchReportImageUrl } from '../../utils/image';
 
 function formatTime(dateStr) {
     if (!dateStr) return 'Baru saja';
@@ -31,6 +33,7 @@ export default function ReportDetail() {
     const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
 
     useEffect(() => {
         setLoading(true);
@@ -43,9 +46,21 @@ export default function ReportDetail() {
             .finally(() => setLoading(false));
     }, [id]);
 
+    useEffect(() => {
+        let url = null;
+        if (report?.image_url) {
+            fetchReportImageUrl(report.image_url).then(result => {
+                url = result;
+                setImageUrl(result);
+            });
+        }
+        return () => {
+            if (url) URL.revokeObjectURL(url);
+        };
+    }, [report?.image_url]);
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans flex flex-col transition-colors duration-300">
-            {/* Navigation Header */}
             <div className="py-4 px-6 md:px-12 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs transition-colors duration-300">
                 <div className="max-w-[900px] mx-auto flex items-center justify-between">
                     <Link to="/laporan" className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 transition-colors">
@@ -101,9 +116,23 @@ export default function ReportDetail() {
                             )}
                         </div>
 
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 leading-snug">
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 leading-snug">
                             {report.title}
                         </h1>
+
+                        {imageUrl ? (
+                            <div className="relative w-full max-h-96 rounded-xl overflow-hidden mb-6 bg-slate-100 dark:bg-slate-800">
+                                <img
+                                    src={imageUrl}
+                                    alt={report.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ) : report.image_url ? (
+                            <div className="w-full h-48 rounded-xl mb-6 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <ImageOff className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+                            </div>
+                        ) : null}
 
                         <div className="text-slate-700 dark:text-slate-300 leading-relaxed space-y-4 whitespace-pre-wrap mb-8 text-sm md:text-base">
                             {report.description}
@@ -116,8 +145,8 @@ export default function ReportDetail() {
                             </div>
 
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
-                                report.status === 'verified' 
-                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20' 
+                                report.status === 'verified'
+                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20'
                                     : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20'
                             }`}>
                                 {report.status === 'verified' ? (

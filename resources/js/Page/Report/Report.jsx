@@ -15,48 +15,6 @@ import CreateReportModal from './CreateReportModal';
 import { api } from '../../utils/api';
 import { supabase } from '../../utils/supabase';
 
-const SAMPLE_REPORTS = [
-    {
-        id: 'mock-1',
-        username: 'BudiPratama',
-        title: 'Percobaan Pembegalan Sepeda Motor Malam Hari di Kawasan Tebet',
-        description: 'Tadi malam sekitar pukul 23:30 WIB, terjadi percobaan pembegalan di dekat stasiun Tebet. Pelaku mengendarai motor matic tanpa plat nomor dan membawa senjata tajam. Beruntung korban berhasil melarikan diri ke area ramai.',
-        category: 'Pencurian / Begal',
-        province: 'DKI Jakarta',
-        city: 'Jakarta Selatan',
-        upvotes: 48,
-        downvotes: 2,
-        status: 'verified',
-        created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
-    },
-    {
-        id: 'mock-2',
-        username: 'SitiWargaRungkut',
-        title: 'Penipuan Modus Modus Tukar Uang Asing Palsu di Mall Surabaya',
-        description: 'Waspada bagi warga Surabaya. Ada kelompok orang tak dikenal menawarkan penukaran valas di parkiran mall dengan iming-iming kurs tinggi, ternyata uang yang diberikan adalah kertas lembaran palsu.',
-        category: 'Penipuan / Cybercrime',
-        province: 'Jawa Timur',
-        city: 'Surabaya',
-        upvotes: 29,
-        downvotes: 1,
-        status: 'verified',
-        created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    },
-    {
-        id: 'mock-3',
-        username: 'WargaBandung',
-        title: 'Pencurian Helm Berantai di Parkiran Ruko Dago',
-        description: 'Dalam seminggu terakhir sudah terjadi 4 kasus kehilangan helm bermerek di area parkiran ruko daerah Dago. CCTV menangkap pelaku yang sama beraksi sekitar jam makan siang.',
-        category: 'Pencurian / Begal',
-        province: 'Jawa Barat',
-        city: 'Bandung',
-        upvotes: 15,
-        downvotes: 0,
-        status: 'pending',
-        created_at: new Date(Date.now() - 3600000 * 28).toISOString(),
-    },
-];
-
 export default function Report() {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -105,13 +63,9 @@ export default function Report() {
                 province: selectedProvince,
                 search: searchQuery,
             });
-            if (data && data.length > 0) {
-                setReports(data);
-            } else {
-                setReports(SAMPLE_REPORTS);
-            }
+            setReports(data || []);
         } catch {
-            setReports(SAMPLE_REPORTS);
+            setReports([]);
         } finally {
             setLoading(false);
         }
@@ -126,13 +80,9 @@ export default function Report() {
             const created = await api.reports.create(newReportData);
             if (created) {
                 setReports((prev) => [created, ...prev]);
-            } else {
-                const mockCreated = { ...newReportData, id: `mock-${Date.now()}` };
-                setReports((prev) => [mockCreated, ...prev]);
             }
         } catch {
-            const mockCreated = { ...newReportData, id: `mock-${Date.now()}` };
-            setReports((prev) => [mockCreated, ...prev]);
+            // silently fail — error logged by api
         }
     };
 

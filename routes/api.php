@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Api\ReportImageController;
+
+Route::post('/images', [ReportImageController::class, 'upload']);
+Route::get('/images/{filename}', [ReportImageController::class, 'show'])->middleware('auth.supabase');
 
 Route::any('/{any}', function ($any) {
     $fastapiUrl = env('NEWS_SCRAPER_URL', 'http://localhost:10000') . '/api/' . $any;

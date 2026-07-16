@@ -146,7 +146,6 @@ export const api = {
     topActiveProvincesLast30Days: async () => {
       if (!supabase) return []
 
-      // 30 hari terakhir berdasarkan published
       const since = new Date(Date.now() - 30 * 86400000).toISOString()
 
       const { data, error } = await supabase
@@ -208,7 +207,42 @@ export const api = {
   scrape: {
     trigger: () => request('/scrape', { method: 'POST' }),
   },
+  getCategoryOptions: async () => {
+    if (!supabase) return []
+    const { data, error } = await supabase
+      .from('crime_articles')
+      .select('crime_type')
+      .not('crime_type', 'is', null)
+    if (error) return []
+    return [...new Set(data.map(d => d.crime_type).filter(Boolean))].sort()
+  },
+  getProvinceOptions: async () => {
+    if (!supabase) return []
+    const { data, error } = await supabase
+      .from('crime_articles')
+      .select('province')
+      .not('province', 'is', null)
+    if (error) return []
+    return [...new Set(data.map(d => d.province).filter(Boolean))].sort()
+  },
   reports: {
+    image: {
+      upload: async (file) => {
+        if (!supabase) return null
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) return null
+        const formData = new FormData()
+        formData.append('image', file)
+        const response = await fetch('/api/images', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+          body: formData,
+        })
+        if (!response.ok) return null
+        const data = await response.json()
+        return data.id
+      },
+    },
     list: async (params = {}) => {
       if (!supabase) return []
       let query = supabase.from('community_reports').select('*')
@@ -240,20 +274,19 @@ export const api = {
     },
     vote: async (reportId, userId, voteType) => {
       if (!supabase) return null
-      // Check existing vote
       const { data: existing } = await supabase.from('report_votes').select('*').eq('report_id', reportId).eq('user_id', userId).single()
       if (existing) {
         if (existing.vote_type === voteType) {
-          // Remove vote
           await supabase.from('report_votes').delete().eq('id', existing.id)
         } else {
-          // Update vote
           await supabase.from('report_votes').update({ vote_type: voteType }).eq('id', existing.id)
         }
       } else {
-        // Insert new vote
         await supabase.from('report_votes').insert([{ report_id: reportId, user_id: userId, vote_type: voteType }])
       }
+      const { count: upCount } = await supabase.from('report_votes').select('id', { count: 'exact', head: true }).eq('report_id', reportId).eq('vote_type', 'up')
+      const { count: downCount } = await supabase.from('report_votes').select('id', { count: 'exact', head: true }).eq('report_id', reportId).eq('vote_type', 'down')
+      await supabase.from('community_reports').update({ upvotes: upCount || 0, downvotes: downCount || 0 }).eq('id', reportId)
       return true
     }
   },

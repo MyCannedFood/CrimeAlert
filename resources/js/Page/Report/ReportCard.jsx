@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-    ArrowBigUp, 
-    ArrowBigDown, 
-    MapPin, 
-    Tag, 
-    MessageSquare, 
-    CheckCircle2, 
-    Clock 
+import {
+    ArrowBigUp,
+    ArrowBigDown,
+    MapPin,
+    Tag,
+    MessageSquare,
+    CheckCircle2,
+    Clock,
+    ImageOff
 } from 'lucide-react';
+import { fetchReportImageUrl } from '../../utils/image';
 
 function formatTime(dateStr) {
     if (!dateStr) return 'Baru saja';
@@ -26,11 +28,25 @@ function formatTime(dateStr) {
 export default function ReportCard({ report, onVote }) {
     const [voteCount, setVoteCount] = useState((report.upvotes || 0) - (report.downvotes || 0));
     const [userVote, setUserVote] = useState(report.userVote || null);
+    const [imageUrl, setImageUrl] = useState(null);
+
+    useEffect(() => {
+        let url = null;
+        if (report.image_url) {
+            fetchReportImageUrl(report.image_url).then(result => {
+                url = result;
+                setImageUrl(result);
+            });
+        }
+        return () => {
+            if (url) URL.revokeObjectURL(url);
+        };
+    }, [report.image_url]);
 
     const handleVote = (e, type) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         let newCount = voteCount;
         let newVote = userVote;
 
@@ -51,7 +67,6 @@ export default function ReportCard({ report, onVote }) {
 
     return (
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 md:p-5 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex gap-4 items-start">
-            {/* Vote Column */}
             <div className="flex flex-col items-center bg-slate-50/80 dark:bg-slate-800/80 rounded-lg p-1 min-w-[40px] border border-slate-100 dark:border-slate-700/50">
                 <button
                     onClick={(e) => handleVote(e, 'up')}
@@ -80,7 +95,6 @@ export default function ReportCard({ report, onVote }) {
                 </button>
             </div>
 
-            {/* Content Column */}
             <div className="flex-grow min-w-0">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                     <span className="font-semibold text-slate-800 dark:text-slate-200">u/{report.username || 'WargaAnonim'}</span>
@@ -102,9 +116,19 @@ export default function ReportCard({ report, onVote }) {
                         {report.title}
                     </h3>
 
-                    <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-2 mb-3 leading-relaxed">
-                        {report.description}
-                    </p>
+                    {imageUrl ? (
+                        <div className="relative w-full h-40 rounded-lg overflow-hidden mb-3 bg-slate-100 dark:bg-slate-800">
+                            <img
+                                src={imageUrl}
+                                alt={report.title}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    ) : report.image_url ? (
+                        <div className="w-full h-24 rounded-lg mb-3 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <ImageOff className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                        </div>
+                    ) : null}
                 </Link>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 mt-1 text-xs">
@@ -117,8 +141,8 @@ export default function ReportCard({ report, onVote }) {
                         )}
                         {report.status && (
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-medium text-xs ${
-                                report.status === 'verified' 
-                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20' 
+                                report.status === 'verified'
+                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20'
                                     : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20'
                             }`}>
                                 {report.status === 'verified' ? (
@@ -136,8 +160,8 @@ export default function ReportCard({ report, onVote }) {
                         )}
                     </div>
 
-                    <Link 
-                        to={`/laporan/${report.id}`} 
+                    <Link
+                        to={`/laporan/${report.id}`}
                         className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium text-xs transition-colors"
                     >
                         <MessageSquare className="w-3.5 h-3.5" />
