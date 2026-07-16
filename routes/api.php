@@ -1,26 +1,27 @@
 <?php
 
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\CrimeController;
-use App\Http\Controllers\Api\GeoController;
-use App\Http\Controllers\Api\StatsController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Http;
 
-// Public
-Route::get('crimes', [CrimeController::class, 'index']);
-Route::get('crimes/{id}', [CrimeController::class, 'show']);
-Route::get('categories', [CategoryController::class, 'index']);
-Route::get('stats/summary', [StatsController::class, 'summary']);
-Route::get('stats/categories', [StatsController::class, 'byCategory']);
-Route::get('stats/provinces', [StatsController::class, 'byProvince']);
-Route::get('stats/trend', [StatsController::class, 'monthlyTrend']);
-Route::get('geo/nearby', [GeoController::class, 'nearby']);
-Route::get('geo/heatmap', [GeoController::class, 'heatmap']);
+Route::any('/{any}', function ($any) {
+    $fastapiUrl = env('NEWS_SCRAPER_URL', 'http://localhost:10000') . '/api/' . $any;
 
-// Authenticated
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('crimes', [CrimeController::class, 'store']);
-    Route::put('crimes/{crime}', [CrimeController::class, 'update']);
-    Route::delete('crimes/{crime}', [CrimeController::class, 'destroy']);
-    Route::post('crimes/{id}/verify', [CrimeController::class, 'verify']);
-});
+    $query = request()->query();
+    if (!empty($query)) {
+        $fastapiUrl .= '?' . http_build_query($query);
+    }
+
+    try {
+        $response = Http::timeout(30)->withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        ])->send(request()->method(), $fastapiUrl, [
+            'body' => request()->getContent(),
+        ]);
+
+        return response($response->body(), $response->status())
+            ->withHeaders(['Content-Type' => 'application/json']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 502);
+    }
+})->where('any', '.*');
