@@ -61,14 +61,14 @@ export default function LatestNewsSection() {
                             style={{
                                 fontSize: '1.75rem',
                                 fontWeight: 800,
-                                color: '#0F172A',
+                                color: 'var(--color-text)',
                                 margin: '0 0 0.3rem 0',
                                 letterSpacing: '-0.02em',
                             }}
                         >
                             Berita Kriminal Terkini
                         </h2>
-                        <p style={{ color: '#64748B', margin: 0, fontSize: '0.95rem' }}>
+                        <p style={{ color: 'var(--color-text-secondary)', margin: 0, fontSize: '0.95rem' }}>
                             Laporan terverifikasi terbaru dari sumber tepercaya
                         </p>
                     </div>
@@ -108,22 +108,22 @@ export default function LatestNewsSection() {
                             key={`skeleton-${i}`}
                             className="news-skeleton"
                             style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E5E7EB',
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                boxSizing: 'border-box',
-                                flex: '0 0 auto',
-                                width: '272px',
-                                scrollSnapAlign: 'start',
-                            }}
-                        >
-                            <div style={{ height: '14rem', width: '100%', background: '#E2E8F0' }} />
-                            <div style={{ padding: '1.25rem' }}>
-                                <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', marginBottom: '0.75rem', width: '80%' }} />
-                                <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', width: '60%' }} />
-                                <div style={{ height: '0.75rem', background: '#E2E8F0', borderRadius: '4px', marginTop: '1.5rem', width: '40%' }} />
+                                background: 'var(--color-bg-card)',
+                                    border: '1px solid var(--color-card-border)',
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    boxSizing: 'border-box',
+                                    flex: '0 0 auto',
+                                    width: '272px',
+                                    scrollSnapAlign: 'start',
+                                }}
+                            >
+                                <div style={{ height: '14rem', width: '100%', background: 'var(--color-skeleton)' }} />
+                                <div style={{ padding: '1.25rem' }}>
+                                    <div style={{ height: '1rem', background: 'var(--color-skeleton)', borderRadius: '4px', marginBottom: '0.75rem', width: '80%' }} />
+                                    <div style={{ height: '1rem', background: 'var(--color-skeleton)', borderRadius: '4px', width: '60%' }} />
+                                    <div style={{ height: '0.75rem', background: 'var(--color-skeleton)', borderRadius: '4px', marginTop: '1.5rem', width: '40%' }} />
                             </div>
                         </div>
                     ))}
@@ -137,17 +137,17 @@ export default function LatestNewsSection() {
                             key={index}
                             className="news-card"
                             style={{
-                                background: '#FFFFFF',
-                                border: '1px solid #E5E7EB',
-                                borderRadius: 0,
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                boxSizing: 'border-box',
-                                flex: '0 0 auto',
-                                width: '272px',
-                                scrollSnapAlign: 'start',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                background: 'var(--color-bg-card)',
+                                    border: '1px solid var(--color-card-border)',
+                                    borderRadius: 0,
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    boxSizing: 'border-box',
+                                    flex: '0 0 auto',
+                                    width: '272px',
+                                    scrollSnapAlign: 'start',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                             }}
                         >
                             <div
@@ -164,11 +164,11 @@ export default function LatestNewsSection() {
                                         position: 'absolute',
                                         left: 0,
                                         bottom: 0,
-                                        background: '#FFFFFF',
+                                        background: 'var(--color-bg-card)',
                                         padding: '0.375rem 0.75rem',
                                         fontSize: '0.75rem',
                                         fontWeight: 600,
-                                        color: '#64748B',
+                                        color: 'var(--color-text-secondary)',
                                     }}
                                 >
                                     {item.category}
@@ -183,11 +183,11 @@ export default function LatestNewsSection() {
                                     flexGrow: 1,
                                 }}
                             >
-                                <h3
-                                    style={{
-                                        fontSize: '17px',
-                                        fontWeight: 700,
-                                        color: '#111827',
+                                    <h3
+                                        style={{
+                                            fontSize: '17px',
+                                            fontWeight: 700,
+                                            color: 'var(--color-text)',
                                         margin: '0 0 1.5rem 0',
                                         lineHeight: 1.2,
                                     }}

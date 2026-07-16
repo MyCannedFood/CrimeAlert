@@ -126,9 +126,9 @@ export default function Statistics() {
     const formatValue = (v) => (v >= 1000 ? `${(v / 1000).toFixed(1).replace('.0', '')}K` : v);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 font-sans flex flex-col">
             {/* Header Section */}
-            <div className="relative overflow-hidden pt-16 pb-12 px-6 md:px-12 border-b border-gray-200" style={{ background: 'linear-gradient(135deg, #EAF0FE 0%, #DCE6FB 100%)' }}>
+            <div className="relative overflow-hidden pt-16 pb-12 px-6 md:px-12 border-b border-gray-200 dark:border-slate-700" style={{ background: 'linear-gradient(135deg, var(--color-hero-start) 0%, var(--color-hero-end) 100%)' }}>
                 <div
                     style={{
                         position: 'absolute',
@@ -154,9 +154,9 @@ export default function Statistics() {
                     }}
                 />
                 <div className="relative max-w-[1400px] mx-auto">
-                    <div className="text-sm text-gray-800 mb-2">Beranda &gt; Statistik</div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Statistik Kriminalitas</h1>
-                    <p className="text-gray-800 max-w-2xl text-base">
+                    <div className="text-sm text-gray-800 dark:text-slate-300 mb-2">Beranda &gt; Statistik</div>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">Statistik Kriminalitas</h1>
+                    <p className="text-gray-800 dark:text-slate-300 max-w-2xl text-base">
                         Analisis tren, distribusi kategori, dan wilayah paling rawan berdasarkan data yang terverifikasi.
                     </p>
                 </div>
@@ -168,16 +168,16 @@ export default function Statistics() {
                 {/* 1. Summary Cards (Row Layout) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {loading && Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="bg-white border border-gray-200 p-6 rounded-none shadow-sm animate-pulse">
-                            <div className="h-3 bg-gray-200 rounded w-24 mb-4" />
-                            <div className="h-8 bg-gray-200 rounded w-16 mb-3" />
-                            <div className="h-3 bg-gray-200 rounded w-32" />
+                        <div key={i} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm animate-pulse">
+                            <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-24 mb-4" />
+                            <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-16 mb-3" />
+                            <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-32" />
                         </div>
                     ))}
                     {!loading && summaryData.map((item, index) => (
-                        <div key={index} className="bg-white border border-gray-200 p-6 rounded-none shadow-sm flex flex-col justify-between">
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{item.title}</h3>
-                            <div className="text-3xl font-bold text-gray-900 mb-3">{item.value}</div>
+                        <div key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col justify-between">
+                            <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">{item.title}</h3>
+                            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-3">{item.value}</div>
                             <div className={`flex items-center text-xs font-medium ${item.isPositive ? 'text-green-600' : 'text-red-500'}`}>
                                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -191,18 +191,18 @@ export default function Statistics() {
                 {/* 2. Charts Section (Row Layout) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Line Chart Area - merah (naik) / hijau (turun) */}
-                    <div className="col-span-1 lg:col-span-2 bg-white border border-gray-200 p-6 rounded-none shadow-sm flex flex-col">
+                    <div className="col-span-1 lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col">
                         <div className="flex justify-between items-center mb-4">
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900">Monthly Crime Trend</h3>
-                                <p className="text-xs text-gray-500">Jumlah kasus per bulan (Jan - Des)</p>
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Monthly Crime Trend</h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Jumlah kasus per bulan (Jan - Des)</p>
                             </div>
                             <div className="flex items-center gap-4 text-xs">
-                                <div className="flex items-center text-gray-600">
+                                <div className="flex items-center text-gray-600 dark:text-slate-300">
                                     <span className="w-3 h-[3px] bg-[#dc2626] mr-1.5"></span>
                                     Naik
                                 </div>
-                                <div className="flex items-center text-gray-600">
+                                <div className="flex items-center text-gray-600 dark:text-slate-300">
                                     <span className="w-3 h-[3px] bg-[#22c55e] mr-1.5"></span>
                                     Turun
                                 </div>
@@ -281,9 +281,9 @@ export default function Statistics() {
                     </div>
 
                         {/* Donut Chart Area */}
-                    <div className="col-span-1 bg-white border border-gray-200 p-6 rounded-none shadow-sm">
-                        <h3 className="text-sm font-bold text-gray-900 mb-1">Kategori Kejahatan</h3>
-                        <p className="text-xs text-gray-500 mb-6">Distribusi per jenis</p>
+                    <div className="col-span-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Kategori Kejahatan</h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-6">Distribusi per jenis</p>
 
                         <div className="flex flex-row lg:flex-col xl:flex-row items-center justify-between gap-6">
                             {/* CSS Donut Graphic */}
@@ -298,16 +298,16 @@ export default function Statistics() {
                                 return (
                                     <div className="relative w-32 h-32 flex-shrink-0 rounded-full"
                                          style={{ background: `conic-gradient(${gradientParts.join(', ')})` }}>
-                                        <div className="absolute inset-2 bg-white rounded-full flex flex-col items-center justify-center">
-                                            <span className="text-lg font-bold text-gray-900">{total.toLocaleString('id-ID')}</span>
-                                            <span className="text-[10px] text-gray-500 uppercase">Total</span>
+                                        <div className="absolute inset-2 bg-white dark:bg-slate-800 rounded-full flex flex-col items-center justify-center">
+                                            <span className="text-lg font-bold text-gray-900 dark:text-white">{total.toLocaleString('id-ID')}</span>
+                                            <span className="text-[10px] text-gray-500 dark:text-slate-400 uppercase">Total</span>
                                         </div>
                                     </div>
                                 );
                             })()}
                             {crimeCategories.length === 0 && (
-                                <div className="relative w-32 h-32 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-xs text-gray-400">Tidak ada data</span>
+                                <div className="relative w-32 h-32 flex-shrink-0 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
+                                    <span className="text-xs text-gray-400 dark:text-slate-500">Tidak ada data</span>
                                 </div>
                             )}
 
@@ -315,11 +315,11 @@ export default function Statistics() {
                             <div className="flex-grow w-full">
                                 {crimeCategories.map((cat, i) => (
                                     <div key={i} className="flex items-center justify-between mb-1.5 text-xs">
-                                        <div className="flex items-center text-gray-600 font-medium">
+                                        <div className="flex items-center text-gray-600 dark:text-slate-300 font-medium">
                                             <span className="w-3 h-3 mr-2 rounded-sm" style={{ background: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }}></span>
                                             {cat.name}
                                         </div>
-                                        <span className="font-bold text-gray-900">{cat.percent}</span>
+                                        <span className="font-bold text-gray-900 dark:text-white">{cat.percent}</span>
                                     </div>
                                 ))}
                             </div>
@@ -331,26 +331,26 @@ export default function Statistics() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
 
                     {/* Top Provinces Bar Chart */}
-                    <div className="bg-white border border-gray-200 p-6 rounded-none shadow-sm flex flex-col">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col">
                         <div className="flex items-center mb-1">
                             <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full mr-2">★</span>
-                            <h3 className="text-sm font-bold text-gray-900">Top Provinsi Teraktif</h3>
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Top Provinsi Teraktif</h3>
                         </div>
-                        <p className="text-xs text-gray-500 mb-6">Berdasarkan jumlah kasus</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-6">Berdasarkan jumlah kasus</p>
 
                         <div className="flex-grow space-y-4">
                             {loading && Array.from({ length: 5 }).map((_, i) => (
                                 <div key={i} className="flex flex-col animate-pulse">
-                                    <div className="h-3 bg-gray-200 rounded w-32 mb-1" />
-                                    <div className="w-full bg-gray-200 h-3 rounded-full" />
+                                    <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-32 mb-1" />
+                                    <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full" />
                                 </div>
                             ))}
                             {!loading && provinceItems.slice(0, 10).map((prov, i) => {
                                 const maxVal = provinceItems.length > 0 ? provinceItems[0].value : 100;
                                 return (
                                 <div key={i} className="flex flex-col">
-                                    <span className="text-xs font-bold text-gray-800 mb-1">{prov.name}</span>
-                                    <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+                                    <span className="text-xs font-bold text-gray-800 dark:text-slate-200 mb-1">{prov.name}</span>
+                                    <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
                                         <div className={`${prov.color} h-full rounded-full`} style={{ width: `${(prov.value / maxVal) * 100}%` }}></div>
                                     </div>
                                 </div>
@@ -359,7 +359,7 @@ export default function Statistics() {
                         </div>
 
                         {/* Legend */}
-                        <div className="flex items-center space-x-4 mt-8 text-[11px] font-medium text-gray-600">
+                        <div className="flex items-center space-x-4 mt-8 text-[11px] font-medium text-gray-600 dark:text-slate-400">
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#22c55e] mr-1"></span> Aman</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#facc15] mr-1"></span> Sedang</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#f97316] mr-1"></span> Tinggi</div>
@@ -368,14 +368,14 @@ export default function Statistics() {
                     </div>
 
                     {/* Map Section */}
-                    <div className="bg-white border border-gray-200 p-6 rounded-none shadow-sm flex flex-col">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <div className="flex items-center mb-1">
                                     <svg className="w-4 h-4 text-blue-600 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                                    <h3 className="text-sm font-bold text-gray-900">National Heatmap</h3>
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">National Heatmap</h3>
                                 </div>
-                                <p className="text-xs text-gray-500">Ranked by crime index</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">Ranked by crime index</p>
                             </div>
                             <a href="/map" className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
                                 Lihat Peta Lengkap →
@@ -383,12 +383,12 @@ export default function Statistics() {
                         </div>
 
                         {/* Map Visual Component */}
-                        <div className="flex-grow w-full border border-gray-100 rounded-sm bg-white overflow-hidden min-h-[300px]">
+                        <div className="flex-grow w-full border border-gray-100 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 overflow-hidden min-h-[300px]">
                             <MiniMap height="300px" showHeatmap={true} interactive={false} />
                         </div>
 
                         {/* Legend */}
-                        <div className="flex items-center space-x-4 mt-6 text-[11px] font-medium text-gray-600">
+                        <div className="flex items-center space-x-4 mt-6 text-[11px] font-medium text-gray-600 dark:text-slate-400">
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#22c55e] mr-1"></span> Aman</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#facc15] mr-1"></span> Sedang</div>
                             <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-[#f97316] mr-1"></span> Tinggi</div>

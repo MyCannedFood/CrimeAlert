@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import HeatmapLayer from './HeatmapLayer';
 import { api } from '../../utils/api';
+import { useDarkMode } from '../../utils/DarkModeProvider';
 
 export default function MiniMap({
   height = '400px',
@@ -12,6 +13,7 @@ export default function MiniMap({
   className = '',
   crimes: propCrimes = null,
 }) {
+  const { isDark } = useDarkMode();
   const [fetchedCrimes, setFetchedCrimes] = useState([]);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function MiniMap({
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url={isDark ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
         />
         {showHeatmap && <HeatmapLayer points={heatmapPoints} />}
       </MapContainer>

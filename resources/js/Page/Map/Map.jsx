@@ -21,6 +21,7 @@ import HeatmapLayer from "../../Components/Map/HeatmapLayer";
 import MapEventHandler from "../../Components/Map/MapEventHandler";
 import CrimeMarkerPopup from "../../Components/Map/CrimeMarkerPopup";
 import { api } from "../../utils/api";
+import { useDarkMode } from "../../utils/DarkModeProvider";
 
 /* ---------------------------------------------------------------------
    Design tokens & maps
@@ -80,15 +81,17 @@ function createCustomIcon(severity = "moderate", isBreaking = false) {
 /* ---------------------------------------------------------------------
    Small UI Helper Components
 --------------------------------------------------------------------- */
-function StatusBadge({ status }) {
+function StatusBadge({ status, isDark }) {
   const bgMap = { safe: "#F0FDF4", moderate: "#FEFCE8", high: "#FFF7ED", danger: "#FEF2F2", nodata: "#F1F5F9" };
+  const bgMapDark = { safe: "#052e16", moderate: "#422006", high: "#431407", danger: "#450a0a", nodata: "#1e293b" };
   const fgMap = { safe: "#15803D", moderate: "#A16207", high: "#C2410C", danger: COLORS.danger, nodata: "#475569" };
+  const fgMapDark = { safe: "#4ade80", moderate: "#facc15", high: "#fb923c", danger: "#fca5a5", nodata: "#94a3b8" };
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
-      style={{ background: bgMap[status], color: fgMap[status] }}
+      style={{ background: isDark ? (bgMapDark[status] || bgMapDark.nodata) : (bgMap[status] || bgMap.nodata), color: isDark ? (fgMapDark[status] || fgMapDark.nodata) : (fgMap[status] || fgMap.nodata) }}
     >
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: fgMap[status] }} />
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: isDark ? (fgMapDark[status] || fgMapDark.nodata) : (fgMap[status] || fgMap.nodata) }} />
       {STATUS_LABEL[status]}
     </span>
   );
@@ -96,12 +99,12 @@ function StatusBadge({ status }) {
 
 function FilterSelect({ icon: Icon, value, onChange, options }) {
   return (
-    <label className="flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-md cursor-pointer border border-slate-100 hover:border-slate-300 transition-colors">
+    <label className="flex shrink-0 items-center gap-2 rounded-full bg-white dark:bg-slate-800 px-4 py-2.5 text-[13px] font-semibold text-slate-900 dark:text-slate-100 shadow-md cursor-pointer border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
       <Icon className="h-[15px] w-[15px]" style={{ color: COLORS.primary }} />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none bg-transparent pr-1 outline-none font-medium text-slate-800"
+        className="cursor-pointer appearance-none bg-transparent pr-1 outline-none font-medium text-slate-800 dark:text-slate-200"
       >
         {options.map((o) => (
           <option key={o} value={o}>
@@ -117,18 +120,18 @@ function FilterSelect({ icon: Icon, value, onChange, options }) {
 function CustomZoomControl() {
   const map = useMap();
   return (
-    <div className="hidden flex-col overflow-hidden rounded-lg bg-white shadow-lg border border-slate-100 md:flex z-[1000]">
+    <div className="hidden flex-col overflow-hidden rounded-lg bg-white dark:bg-slate-800 shadow-lg border border-slate-100 dark:border-slate-700 md:flex z-[1000]">
       <button
         onClick={() => map.zoomIn()}
         aria-label="Perbesar"
-        className="flex h-10 w-10 items-center justify-center border-b border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+        className="flex h-10 w-10 items-center justify-center border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"
       >
         <Plus className="h-4 w-4" />
       </button>
       <button
         onClick={() => map.zoomOut()}
         aria-label="Perkecil"
-        className="flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+        className="flex h-10 w-10 items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 transition-colors"
       >
         <Minus className="h-4 w-4" />
       </button>
@@ -162,7 +165,7 @@ function GeolocationButton() {
     <button
       onClick={handleLocate}
       aria-label="Lokasi saya"
-      className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-lg border border-slate-100 transition-colors hover:bg-slate-50 z-[1000]"
+      className="flex h-10 w-10 items-center justify-center rounded-lg bg-white dark:bg-slate-800 shadow-lg border border-slate-100 dark:border-slate-700 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 z-[1000]"
       style={{ color: COLORS.primary }}
     >
       <LocateFixed className={`h-[18px] w-[18px] ${locating ? "animate-spin" : ""}`} />
@@ -188,6 +191,7 @@ function MapFocusController({ targetLocation }) {
 export default function MapPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isDark } = useDarkMode();
   const [crimes, setCrimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -286,7 +290,7 @@ export default function MapPage() {
 
   return (
     <div
-      className="relative w-full overflow-hidden bg-slate-100"
+      className="relative w-full overflow-hidden bg-slate-100 dark:bg-slate-900"
       style={{ height: "calc(100dvh - 4.5rem)", maxHeight: "calc(100dvh - 4.5rem)", overflow: "hidden", fontFamily: "Inter, system-ui, sans-serif" }}
     >
       {/* Dynamic Keyframe Injection for Ping Animation */}
@@ -309,7 +313,7 @@ export default function MapPage() {
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url={isDark ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
         />
 
         <MapEventHandler onBoundsChange={setBounds} />
@@ -320,10 +324,10 @@ export default function MapPage() {
 
         {/* Loading overlay */}
         {loading && (
-          <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/60">
-            <div className="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg border border-slate-200">
+          <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/60 dark:bg-black/60">
+            <div className="flex items-center gap-3 rounded-xl bg-white dark:bg-slate-800 px-6 py-4 shadow-lg border border-slate-200 dark:border-slate-700">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <span className="text-sm font-semibold text-slate-600">Memuat data...</span>
+              <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">Memuat data...</span>
             </div>
           </div>
         )}
@@ -352,17 +356,17 @@ export default function MapPage() {
 
       {/* ============ DESKTOP FLOATING TOOLBAR ============ */}
       <div className="absolute left-4 right-4 top-4 z-[1000] hidden flex-wrap items-center gap-2.5 md:flex">
-        <div className="flex min-w-[220px] max-w-[360px] flex-1 items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-lg border border-slate-100">
+        <div className="flex min-w-[220px] max-w-[360px] flex-1 items-center gap-2.5 rounded-full bg-white dark:bg-slate-800 px-4 py-2.5 shadow-lg border border-slate-100 dark:border-slate-700">
           <Search className="h-[18px] w-[18px] text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari provinsi, kota, atau judul..."
-            className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-slate-400"
+            className="min-w-0 flex-1 bg-transparent dark:text-slate-200 text-[13.5px] outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X className="h-4 w-4" />
             </button>
           )}
@@ -389,7 +393,7 @@ export default function MapPage() {
 
         <button
           onClick={() => setHeatmapOn((v) => !v)}
-          className="flex shrink-0 items-center gap-2.5 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-lg border border-slate-100 cursor-pointer"
+          className="flex shrink-0 items-center gap-2.5 rounded-full bg-white dark:bg-slate-800 px-4 py-2.5 text-[13px] font-semibold text-slate-900 dark:text-slate-100 shadow-lg border border-slate-100 dark:border-slate-700 cursor-pointer"
         >
           <span
             className="relative h-[19px] w-[34px] rounded-full transition-colors"
@@ -406,20 +410,20 @@ export default function MapPage() {
 
       {/* ============ MOBILE TOP BAR ============ */}
       <div className="absolute left-3 right-3 top-3 z-[1000] flex items-center gap-2 md:hidden">
-        <div className="flex flex-1 items-center gap-2 rounded-full bg-white px-3.5 py-2.5 shadow-lg border border-slate-100">
+        <div className="flex flex-1 items-center gap-2 rounded-full bg-white dark:bg-slate-800 px-3.5 py-2.5 shadow-lg border border-slate-100 dark:border-slate-700">
           <Search className="h-[17px] w-[17px] shrink-0 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari provinsi atau kota..."
-            className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"
+            className="min-w-0 flex-1 bg-transparent dark:text-slate-200 text-[13px] outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         </div>
         <button
           onClick={() => setMobileFiltersOpen(true)}
           aria-label="Buka filter"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-lg border border-slate-100"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-100 dark:border-slate-700"
           style={{ color: COLORS.primary }}
         >
           <SlidersHorizontal className="h-5 w-5" />
@@ -429,14 +433,14 @@ export default function MapPage() {
       {/* ============ MOBILE FILTER BOTTOM SHEET ============ */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-[2000] flex items-end md:hidden">
-          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setMobileFiltersOpen(false)} />
-          <div className="relative z-10 max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl">
+          <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/60" onClick={() => setMobileFiltersOpen(false)} />
+          <div className="relative z-10 max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white dark:bg-slate-800 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-slate-900">Filter Peta Kriminalitas</h3>
+              <h3 className="text-[16px] font-bold text-slate-900 dark:text-slate-100">Filter Peta Kriminalitas</h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-label="Tutup filter"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -444,13 +448,13 @@ export default function MapPage() {
 
             <div className="space-y-3">
               <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Provinsi</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Provinsi</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3">
                   <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
                   <select
                     value={selectedProvince}
                     onChange={(e) => setSelectedProvince(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 dark:text-slate-200 outline-none"
                   >
                     {PROVINCE_OPTIONS.map((o) => (
                       <option key={o} value={o}>{o}</option>
@@ -460,13 +464,13 @@ export default function MapPage() {
               </div>
 
               <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Kota</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Kota</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3">
                   <Globe2 className="h-4 w-4 shrink-0 text-slate-400" />
                   <select
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 dark:text-slate-200 outline-none"
                   >
                     {CITY_OPTIONS.map((o) => (
                       <option key={o} value={o}>{o}</option>
@@ -476,13 +480,13 @@ export default function MapPage() {
               </div>
 
               <div>
-                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Rentang Waktu</span>
-                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rentang Waktu</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3">
                   <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
                   <select
                     value={selectedTimeRange}
                     onChange={(e) => setSelectedTimeRange(e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 dark:text-slate-200 outline-none"
                   >
                     {TIME_OPTIONS.map((o) => (
                       <option key={o} value={o}>{o}</option>
@@ -493,9 +497,9 @@ export default function MapPage() {
 
               <button
                 onClick={() => setHeatmapOn((v) => !v)}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3"
+                className="flex w-full items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 px-3.5 py-3"
               >
-                <span className="text-[14px] font-medium text-slate-900">Tampilkan Heatmap</span>
+                <span className="text-[14px] font-medium text-slate-900 dark:text-slate-200">Tampilkan Heatmap</span>
                 <span
                   className="relative h-[20px] w-[36px] rounded-full transition-colors"
                   style={{ background: heatmapOn ? COLORS.primary : "#CBD5E1" }}
@@ -520,16 +524,16 @@ export default function MapPage() {
       )}
 
       {/* ============ LEGEND — bottom-left ============ */}
-      <div className="absolute bottom-3 left-3 z-[1000] max-w-[calc(100vw-5.5rem)] overflow-x-auto rounded-xl bg-white px-3.5 py-2.5 shadow-lg border border-slate-100 md:bottom-4 md:left-4 md:max-w-none">
+      <div className="absolute bottom-3 left-3 z-[1000] max-w-[calc(100vw-5.5rem)] overflow-x-auto rounded-xl bg-white dark:bg-slate-800 px-3.5 py-2.5 shadow-lg border border-slate-100 dark:border-slate-700 md:bottom-4 md:left-4 md:max-w-none">
         <div className="flex items-center gap-3 whitespace-nowrap md:gap-4">
-          <span className="text-[11.5px] font-bold text-slate-700">Severity:</span>
+          <span className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">Severity:</span>
           {LEGEND.map((l) => (
-            <span key={l.status} className="flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600">
+            <span key={l.status} className="flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600 dark:text-slate-400">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: COLORS[l.status] }} />
               {l.label}
             </span>
           ))}
-          <span className="text-[11px] text-slate-400 border-l border-slate-200 pl-3">
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 border-l border-slate-200 dark:border-slate-700 pl-3">
             {filteredCrimes.length} Kejadian Ditemukan
           </span>
         </div>

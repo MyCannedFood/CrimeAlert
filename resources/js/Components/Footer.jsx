@@ -21,8 +21,8 @@ export default function Footer() {
     return (
         <footer
             style={{
-                background: '#ffffff',
-                borderTop: '1px solid rgba(15, 23, 42, 0.08)',
+                background: 'var(--color-bg-card)',
+                borderTop: '1px solid var(--color-border)',
             }}
         >
             <div
@@ -73,9 +73,9 @@ export default function Footer() {
                         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
                             <span
                                 style={{
-                                    fontSize: '1.05rem',
-                                    fontWeight: 800,
-                                    color: '#0f172a',
+                            fontSize: '1.05rem',
+                                fontWeight: 800,
+                                color: 'var(--color-text)',
                                     letterSpacing: '-0.02em',
                                 }}
                             >
@@ -85,7 +85,7 @@ export default function Footer() {
                                 style={{
                                     fontSize: '0.72rem',
                                     fontWeight: 500,
-                                    color: '#64748b',
+                                    color: 'var(--color-text-secondary)',
                                 }}
                             >
                                 Indonesia
@@ -96,7 +96,7 @@ export default function Footer() {
                     <p
                         style={{
                             fontSize: '0.9rem',
-                            color: '#64748b',
+                            color: 'var(--color-text-secondary)',
                             lineHeight: 1.6,
                             maxWidth: '320px',
                             margin: 0,
@@ -112,7 +112,7 @@ export default function Footer() {
                         style={{
                             fontSize: '0.95rem',
                             fontWeight: 700,
-                            color: '#0f172a',
+                            color: 'var(--color-text)',
                             margin: '0 0 1.1rem',
                         }}
                     >
@@ -125,12 +125,12 @@ export default function Footer() {
                                 to={item.path}
                                 style={{
                                     textDecoration: 'none',
-                                    color: '#64748b',
+                                    color: 'var(--color-text-secondary)',
                                     fontSize: '0.9rem',
                                     transition: 'color 0.2s ease',
                                 }}
                                 onMouseEnter={(e) => (e.currentTarget.style.color = '#2563eb')}
-                                onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+                                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
                             >
                                 {item.name}
                             </Link>
@@ -144,7 +144,7 @@ export default function Footer() {
                         style={{
                             fontSize: '0.95rem',
                             fontWeight: 700,
-                            color: '#0f172a',
+                            color: 'var(--color-text)',
                             margin: '0 0 1.1rem',
                         }}
                     >
@@ -159,12 +159,12 @@ export default function Footer() {
                                 rel="noopener noreferrer"
                                 style={{
                                     textDecoration: 'none',
-                                    color: '#64748b',
+                                    color: 'var(--color-text-secondary)',
                                     fontSize: '0.9rem',
                                     transition: 'color 0.2s ease',
                                 }}
                                 onMouseEnter={(e) => (e.currentTarget.style.color = '#2563eb')}
-                                onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+                                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
                             >
                                 {item.name}
                             </a>
@@ -176,7 +176,7 @@ export default function Footer() {
             {/* Bottom bar */}
             <div
                 style={{
-                    borderTop: '1px solid rgba(15, 23, 42, 0.08)',
+                    borderTop: '1px solid var(--color-border)',
                 }}
             >
                 <div
@@ -196,7 +196,7 @@ export default function Footer() {
                         style={{
                             fontSize: '0.8rem',
                             fontWeight: 700,
-                            color: '#334155',
+                            color: 'var(--color-text)',
                             margin: 0,
                             lineHeight: 1.5,
                         }}

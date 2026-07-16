@@ -6,7 +6,7 @@ import Footer from '../../Components/Footer';
 
 export default function Home() {
     return (
-        <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
             <HeroSection />
 
             <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '0 1.25rem 3rem' }}>
@@ -23,7 +23,7 @@ export default function Home() {
                             position: 'relative',
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            borderTop: '1px solid #E2E8F0',
+                            borderTop: '1px solid var(--color-border)',
                             margin: '2rem 0',
                         }}
                     />
@@ -39,7 +39,7 @@ export default function Home() {
                             position: 'relative',
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            borderTop: '1px solid #E2E8F0',
+                            borderTop: '1px solid var(--color-border)',
                             margin: '2rem 0',
                         }}
                     />

@@ -109,7 +109,7 @@ export default function HeroSection() {
             className="hero-section"
             style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #EAF0FE 0%, #DCE6FB 100%)',
+                background: 'linear-gradient(135deg, var(--color-hero-start) 0%, var(--color-hero-end) 100%)',
                 padding: '4rem 1.25rem 3.5rem',
                 margin: 0,
                 borderRadius: 0,
@@ -193,11 +193,11 @@ export default function HeroSection() {
                         Data di perbarui dari sunber terpercaya
                     </div>
 
-                    <h1
-                        style={{
-                            fontSize: 'clamp(1.9rem, 3.4vw, 2.6rem)',
-                            fontWeight: 800,
-                            color: '#0F172A',
+                        <h1
+                            style={{
+                                fontSize: 'clamp(1.9rem, 3.4vw, 2.6rem)',
+                                fontWeight: 800,
+                                color: 'var(--color-text)',
                             margin: 0,
                             lineHeight: 1.25,
                             letterSpacing: '-0.01em',
@@ -210,7 +210,7 @@ export default function HeroSection() {
 
                     <p
                         style={{
-                            color: '#64748B',
+                            color: 'var(--color-text-secondary)',
                             marginTop: '1rem',
                             lineHeight: 1.7,
                             fontSize: '1rem',
@@ -226,15 +226,15 @@ export default function HeroSection() {
                         className="hero-search"
                         style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            background: 'rgba(255,255,255,0.95)',
-                            border: '1px solid #E2E8F0',
-                            borderRadius: '999px',
-                            padding: '0.4rem 0.4rem 0.4rem 1.1rem',
-                            marginTop: '1.6rem',
-                            maxWidth: '480px',
-                            boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    background: 'var(--color-input-bg)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '999px',
+                                    padding: '0.4rem 0.4rem 0.4rem 1.1rem',
+                                    marginTop: '1.6rem',
+                                    maxWidth: '480px',
+                                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
                         }}
                     >
                         <svg
@@ -285,11 +285,11 @@ export default function HeroSection() {
                     <div
                         style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            marginTop: '1.1rem',
-                            fontSize: '0.9rem',
-                            color: '#334155',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    marginTop: '1.1rem',
+                                    fontSize: '0.9rem',
+                                    color: 'var(--color-text-secondary)',
                             flexWrap: 'wrap',
                         }}
                     >
@@ -307,7 +307,7 @@ export default function HeroSection() {
                             <circle cx="12" cy="10" r="3" />
                         </svg>
                         <span>Lokasi Anda :</span>
-                        <strong style={{ color: '#0F172A' }}>{userCity}</strong>
+                        <strong style={{ color: 'var(--color-text)' }}>{userCity}</strong>
                         <button
                             type="button"
                             onClick={() => {
@@ -354,8 +354,8 @@ export default function HeroSection() {
                         <div
                             key={s.label}
                             style={{
-                                background: 'rgba(255,255,255,0.9)',
-                                border: '1px solid rgba(226, 232, 240, 0.9)',
+                                background: 'var(--color-bg-card)',
+                                    border: '1px solid var(--color-border)',
                                 borderRadius: '18px',
                                 padding: '1.3rem 1.3rem',
                                 boxShadow: '0 10px 24px rgba(15, 23, 42, 0.06)',
@@ -387,10 +387,10 @@ export default function HeroSection() {
                                     {s.iconExtra}
                                 </svg>
                             </div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text)' }}>
                                 {s.value}
                             </div>
-                            <div style={{ fontSize: '0.88rem', color: '#64748B', marginTop: '0.15rem' }}>
+                            <div style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginTop: '0.15rem' }}>
                                 {s.label}
                             </div>
                             {s.sub && (

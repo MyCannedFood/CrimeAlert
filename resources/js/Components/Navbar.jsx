@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useDarkMode } from '../utils/DarkModeProvider';
 
 const navItems = [
     { name: 'Beranda', path: '/' },
@@ -12,6 +13,7 @@ const navItems = [
 export default function Navbar() {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
+    const { isDark, toggle } = useDarkMode();
 
     const isActive = (path) => {
         if (path === '/') {
@@ -27,9 +29,9 @@ export default function Navbar() {
                 position: 'sticky',
                 top: 0,
                 zIndex: 1000,
-                background: 'rgba(255, 255, 255, 0.9)',
+                background: 'var(--color-navbar-bg)',
                 backdropFilter: 'blur(14px)',
-                borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
+                borderBottom: '1px solid var(--color-border)',
                 boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)',
             }}
         >
@@ -81,7 +83,7 @@ export default function Navbar() {
                             style={{
                                 fontSize: '1.05rem',
                                 fontWeight: 800,
-                                color: '#0f172a',
+                                color: 'var(--color-text)',
                                 letterSpacing: '-0.02em',
                             }}
                         >
@@ -90,8 +92,8 @@ export default function Navbar() {
                         <span
                             style={{
                                 fontSize: '0.72rem',
-                                fontWeight: 500,
-                                color: '#64748b',
+                                    fontWeight: 500,
+                                    color: 'var(--color-text-secondary)',
                             }}
                         >
                             Indonesia
@@ -116,12 +118,12 @@ export default function Navbar() {
                                 to={item.path}
                                 style={{
                                     textDecoration: 'none',
-                                    color: active ? '#2563eb' : '#475569',
+                                    color: active ? '#2563eb' : 'var(--color-text-secondary)',
                                     fontWeight: active ? 700 : 600,
                                     fontSize: '0.95rem',
                                     padding: '0.6rem 0.9rem',
                                     borderRadius: '999px',
-                                    background: active ? '#eff6ff' : 'transparent',
+                                    background: active ? 'var(--color-bg-secondary)' : 'transparent',
                                     whiteSpace: 'nowrap',
                                     transition: 'all 0.2s ease',
                                 }}
@@ -149,11 +151,40 @@ export default function Navbar() {
                             gap: '0.6rem',
                         }}
                     >
+                        <button
+                            onClick={toggle}
+                            aria-label="Toggle dark mode"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '999px',
+                                border: '1px solid var(--color-border)',
+                                background: 'var(--color-bg)',
+                                cursor: 'pointer',
+                                color: 'var(--color-text-secondary)',
+                                transition: 'all 0.2s ease',
+                                flexShrink: 0,
+                            }}
+                        >
+                            {isDark ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="5" />
+                                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                                </svg>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                </svg>
+                            )}
+                        </button>
                         <Link
                             to="/masuk"
                             style={{
                                 textDecoration: 'none',
-                                color: '#334155',
+                                color: 'var(--color-text)',
                                 fontWeight: 600,
                                 fontSize: '0.9rem',
                                 padding: '0.6rem 1rem',
@@ -188,8 +219,8 @@ export default function Navbar() {
                         onClick={() => setIsOpen(!isOpen)}
                         style={{
                             display: 'none',
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
+                            background: 'var(--color-bg-secondary)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '999px',
                             cursor: 'pointer',
                             padding: '0.55rem',
@@ -197,7 +228,7 @@ export default function Navbar() {
                         }}
                         aria-label="Toggle menu"
                     >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-text)' }}>
                             {isOpen ? (
                                 <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
                             ) : (
@@ -229,12 +260,12 @@ export default function Navbar() {
                                 onClick={() => setIsOpen(false)}
                                 style={{
                                     textDecoration: 'none',
-                                    color: active ? '#2563eb' : '#334155',
+                                    color: active ? '#2563eb' : 'var(--color-text)',
                                     fontWeight: 700,
                                     padding: '0.7rem 0.85rem',
                                     borderRadius: '12px',
-                                    background: active ? '#eff6ff' : '#f8fafc',
-                                    border: active ? '1px solid #bfdbfe' : '1px solid transparent',
+                                    background: active ? 'var(--color-bg-secondary)' : 'var(--color-bg-card)',
+                                    border: '1px solid var(--color-border)',
                                 }}
                             >
                                 {item.name}
@@ -248,9 +279,40 @@ export default function Navbar() {
                             gap: '0.5rem',
                             marginTop: '0.4rem',
                             paddingTop: '0.6rem',
-                            borderTop: '1px solid rgba(15, 23, 42, 0.08)',
+                            borderTop: '1px solid var(--color-border)',
                         }}
                     >
+                        <button
+                            onClick={toggle}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                flex: 1,
+                                textDecoration: 'none',
+                                color: 'var(--color-text)',
+                                fontWeight: 700,
+                                padding: '0.7rem 0.85rem',
+                                borderRadius: '12px',
+                                background: 'var(--color-bg-card)',
+                                border: '1px solid var(--color-border)',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                            }}
+                        >
+                            {isDark ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="5" />
+                                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                                </svg>
+                            ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                </svg>
+                            )}
+                            {isDark ? 'Mode Terang' : 'Mode Gelap'}
+                        </button>
                         <Link
                             to="/masuk"
                             onClick={() => setIsOpen(false)}
@@ -258,12 +320,12 @@ export default function Navbar() {
                                 flex: 1,
                                 textAlign: 'center',
                                 textDecoration: 'none',
-                                color: '#334155',
+                                color: 'var(--color-text)',
                                 fontWeight: 700,
                                 padding: '0.7rem 0.85rem',
                                 borderRadius: '12px',
-                                background: '#f8fafc',
-                                border: '1px solid #e2e8f0',
+                                background: 'var(--color-bg-card)',
+                                border: '1px solid var(--color-border)',
                             }}
                         >
                             Masuk

@@ -102,15 +102,15 @@ export default function NearestNewsSection() {
                     <h2
                         style={{
                             fontSize: '2.1rem',
-                            fontWeight: 800,
-                            color: '#0F172A',
+                                fontWeight: 800,
+                                color: 'var(--color-text)',
                             margin: '0 0 0.4rem 0',
                             letterSpacing: '-0.02em',
                         }}
                     >
                         Berita Kriminal Terdekat
                     </h2>
-                    <p style={{ color: '#64748B', margin: 0, fontSize: '0.95rem' }}>
+                    <p style={{ color: 'var(--color-text-secondary)', margin: 0, fontSize: '0.95rem' }}>
                         Kejadian terbaru di sekitar Jakarta Barat dan area sekitarnya.
                     </p>
                 </div>
@@ -142,17 +142,17 @@ export default function NearestNewsSection() {
                 }}
             >
                 {loading && Array.from({ length: 4 }).map((_, i) => (
-                    <div key={`skeleton-${i}`} style={{ background: '#FFFFFF', border: '1px solid #E5E7EB', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-                        <div style={{ height: '14rem', width: '100%', background: '#E2E8F0' }} />
+                    <div key={`skeleton-${i}`} style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-card-border)', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                        <div style={{ height: '14rem', width: '100%', background: 'var(--color-skeleton)' }} />
                         <div style={{ padding: '1.25rem' }}>
-                            <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', marginBottom: '0.75rem', width: '80%' }} />
-                            <div style={{ height: '1rem', background: '#E2E8F0', borderRadius: '4px', width: '60%' }} />
-                            <div style={{ height: '0.75rem', background: '#E2E8F0', borderRadius: '4px', marginTop: '1.5rem', width: '40%' }} />
+                            <div style={{ height: '1rem', background: 'var(--color-skeleton)', borderRadius: '4px', marginBottom: '0.75rem', width: '80%' }} />
+                            <div style={{ height: '1rem', background: 'var(--color-skeleton)', borderRadius: '4px', width: '60%' }} />
+                            <div style={{ height: '0.75rem', background: 'var(--color-skeleton)', borderRadius: '4px', marginTop: '1.5rem', width: '40%' }} />
                         </div>
                     </div>
                 ))}
                 {!loading && pageItems.length === 0 && (
-                    <div style={{ gridColumn: '1 / -1', padding: '2rem', color: '#94A3B8', textAlign: 'center' }}>
+                    <div style={{ gridColumn: '1 / -1', padding: '2rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
                         Belum ada data kriminal terdekat
                     </div>
                 )}
@@ -160,8 +160,8 @@ export default function NearestNewsSection() {
                     <div
                         key={index}
                         style={{
-                            background: '#FFFFFF',
-                            border: '1px solid #E5E7EB',
+                            background: 'var(--color-bg-card)',
+                            border: '1px solid var(--color-card-border)',
                             borderRadius: 0,
                             overflow: 'hidden',
                             display: 'flex',
@@ -183,11 +183,11 @@ export default function NearestNewsSection() {
                                     position: 'absolute',
                                     left: 0,
                                     bottom: 0,
-                                    background: '#FFFFFF',
+                                    background: 'var(--color-bg-card)',
                                     padding: '0.375rem 0.75rem',
                                     fontSize: '0.75rem',
                                     fontWeight: 600,
-                                    color: '#64748B',
+                                    color: 'var(--color-text-secondary)',
                                 }}
                             >
                                 {item.category}
@@ -206,7 +206,7 @@ export default function NearestNewsSection() {
                                 style={{
                                     fontSize: '17px',
                                     fontWeight: 700,
-                                    color: '#111827',
+                                    color: 'var(--color-text)',
                                     margin: '0 0 1.5rem 0',
                                     lineHeight: 1.2,
                                 }}
@@ -279,7 +279,7 @@ export default function NearestNewsSection() {
                             borderRadius: '50%',
                             border: 'none',
                             background: activePage === page ? '#2563EB' : 'transparent',
-                            color: activePage === page ? '#FFFFFF' : '#334155',
+                            color: activePage === page ? '#FFFFFF' : 'var(--color-text)',
                             fontWeight: 600,
                             fontSize: '0.9rem',
                             cursor: 'pointer',

@@ -89,14 +89,14 @@ export default function RiskLevelSection() {
                         style={{
                             fontSize: '2.1rem',
                             fontWeight: 800,
-                            color: '#0F172A',
+                            color: 'var(--color-text)',
                             margin: '0 0 0.4rem 0',
                             letterSpacing: '-0.02em',
                         }}
                     >
                         Tingkat Kerawanan Indonesia
                     </h2>
-                    <p style={{ color: '#64748B', margin: 0, fontSize: '0.95rem', maxWidth: '520px' }}>
+                    <p style={{ color: 'var(--color-text-secondary)', margin: 0, fontSize: '0.95rem', maxWidth: '520px' }}>
                         Pratinjau peta panas kriminalitas seluruh Indonesia. Klik link di kanan untuk membuka peta interaktif lengkap.
                     </p>
                 </div>
@@ -120,11 +120,11 @@ export default function RiskLevelSection() {
             <div
                 className="risk-map-card"
                 style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '18px',
-                    overflow: 'hidden',
-                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.05)',
+background: 'var(--color-bg-card)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '18px',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.05)',
                     marginLeft: MAP_EDGE_PADDING,
                     marginRight: MAP_EDGE_PADDING,
                 }}
@@ -146,8 +146,8 @@ export default function RiskLevelSection() {
                 <div
                     className="risk-legend"
                     style={{
-                        borderTop: '1px solid #E2E8F0',
-                        background: '#FFFFFF',
+                        borderTop: '1px solid var(--color-border)',
+                        background: 'var(--color-bg-card)',
                         padding: '1rem 1.25rem',
                         display: 'flex',
                         flexWrap: 'wrap',
@@ -163,7 +163,7 @@ export default function RiskLevelSection() {
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 fontSize: '0.88rem',
-                                color: '#334155',
+                                color: 'var(--color-text-secondary)',
                             }}
                         >
                             <span
