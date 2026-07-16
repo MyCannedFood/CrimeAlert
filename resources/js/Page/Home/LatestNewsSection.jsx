@@ -84,7 +84,7 @@ export default function LatestNewsSection() {
                         </p>
                     </div>
                     <a
-                        href="/berita"
+                        href="/news"
                         style={{
                             color: '#2563EB',
                             textDecoration: 'none',
@@ -120,8 +120,8 @@ export default function LatestNewsSection() {
                             className="news-card"
                             style={{
                                 background: '#FFFFFF',
-                                border: 'none',
-                                borderRadius: '18px',
+                                border: '1px solid #E5E7EB',
+                                borderRadius: 0,
                                 overflow: 'hidden',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -129,14 +129,14 @@ export default function LatestNewsSection() {
                                 flex: '0 0 auto',
                                 width: '272px',
                                 scrollSnapAlign: 'start',
-                                boxShadow: '0 8px 20px rgba(15, 23, 42, 0.05)',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                             }}
                         >
                             <div
                                 style={{
-                                    height: '300px',
+                                    height: '14rem',
                                     width: '100%',
-                                    background: '#94A3B8',
+                                    background: '#9CA3AF',
                                     position: 'relative',
                                     flexShrink: 0,
                                 }}
@@ -144,14 +144,13 @@ export default function LatestNewsSection() {
                                 <div
                                     style={{
                                         position: 'absolute',
-                                        top: '0.9rem',
-                                        left: '0.9rem',
-                                        background: 'rgba(255,255,255,0.92)',
-                                        padding: '0.32rem 0.75rem',
+                                        left: 0,
+                                        bottom: 0,
+                                        background: '#FFFFFF',
+                                        padding: '0.375rem 0.75rem',
                                         fontSize: '0.75rem',
-                                        fontWeight: 500,
-                                        color: '#475569',
-                                        borderRadius: '999px',
+                                        fontWeight: 600,
+                                        color: '#64748B',
                                     }}
                                 >
                                     {item.category}
@@ -160,7 +159,7 @@ export default function LatestNewsSection() {
 
                             <div
                                 style={{
-                                    padding: '1rem',
+                                    padding: '1.25rem',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     flexGrow: 1,
@@ -168,11 +167,11 @@ export default function LatestNewsSection() {
                             >
                                 <h3
                                     style={{
-                                        fontSize: '1.05rem',
+                                        fontSize: '17px',
                                         fontWeight: 700,
-                                        color: '#1E293B',
-                                        margin: '0 0 1rem 0',
-                                        lineHeight: 1.4,
+                                        color: '#111827',
+                                        margin: '0 0 1.5rem 0',
+                                        lineHeight: 1.2,
                                     }}
                                 >
                                     {item.title}
@@ -184,11 +183,12 @@ export default function LatestNewsSection() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '0.5rem',
-                                        fontSize: '0.85rem',
-                                        color: '#94A3B8',
+                                        fontSize: '0.75rem',
+                                        color: '#9CA3AF',
+                                        fontWeight: 500,
                                     }}
                                 >
-                                    <span style={{ fontWeight: 700, color: '#64748B' }}>{item.author}</span>
+                                    <span>{item.author}</span>
                                     <span>{item.time}</span>
                                 </div>
                             </div>

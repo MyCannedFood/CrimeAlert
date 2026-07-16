@@ -140,7 +140,7 @@ export default function NearestNewsSection() {
                     </p>
                 </div>
                 <a
-                    href="/berita"
+                    href="/news"
                     style={{
                         color: '#2563EB',
                         textDecoration: 'none',
@@ -171,34 +171,33 @@ export default function NearestNewsSection() {
                         key={index}
                         style={{
                             background: '#FFFFFF',
-                            border: '1px solid #E2E8F0',
-                            borderRadius: '16px',
+                            border: '1px solid #E5E7EB',
+                            borderRadius: 0,
                             overflow: 'hidden',
                             display: 'flex',
                             flexDirection: 'column',
                             boxSizing: 'border-box',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                         }}
                     >
                         <div style={{ position: 'relative' }}>
                             <div
                                 style={{
-                                    height: '260px',
+                                    height: '14rem',
                                     width: '100%',
-                                    background: '#94A3B8',
+                                    background: '#9CA3AF',
                                 }}
                             />
                             <span
                                 style={{
                                     position: 'absolute',
-                                    left: '1rem',
-                                    bottom: '-14px',
+                                    left: 0,
+                                    bottom: 0,
                                     background: '#FFFFFF',
-                                    borderRadius: '6px',
-                                    padding: '0.3rem 0.65rem',
-                                    fontSize: '0.72rem',
-                                    fontWeight: 500,
+                                    padding: '0.375rem 0.75rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
                                     color: '#64748B',
-                                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.1)',
                                 }}
                             >
                                 {item.category}
@@ -207,7 +206,7 @@ export default function NearestNewsSection() {
 
                         <div
                             style={{
-                                padding: '1.75rem 1.1rem 1.1rem',
+                                padding: '1.25rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 flexGrow: 1,
@@ -215,11 +214,11 @@ export default function NearestNewsSection() {
                         >
                             <h3
                                 style={{
-                                    fontSize: '1.02rem',
+                                    fontSize: '17px',
                                     fontWeight: 700,
-                                    color: '#1E293B',
-                                    margin: '0 0 1rem 0',
-                                    lineHeight: 1.4,
+                                    color: '#111827',
+                                    margin: '0 0 1.5rem 0',
+                                    lineHeight: 1.2,
                                 }}
                             >
                                 {item.title}
@@ -231,11 +230,12 @@ export default function NearestNewsSection() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
-                                    fontSize: '0.85rem',
-                                    color: '#94A3B8',
+                                    fontSize: '0.75rem',
+                                    color: '#9CA3AF',
+                                    fontWeight: 500,
                                 }}
                             >
-                                <span style={{ fontWeight: 700, color: '#64748B' }}>{item.author}</span>
+                                <span>{item.author}</span>
                                 <span>{item.time}</span>
                             </div>
                         </div>
