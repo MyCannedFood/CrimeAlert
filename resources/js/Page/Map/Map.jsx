@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import L from "leaflet";
 import {
   Search,
   MapPin,
@@ -13,8 +17,12 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+import HeatmapLayer from "../../Components/Map/HeatmapLayer";
+import MapEventHandler from "../../Components/Map/MapEventHandler";
+import CrimeMarkerPopup from "../../Components/Map/CrimeMarkerPopup";
+
 /* ---------------------------------------------------------------------
-   Design tokens (exact hex values from the CrimeWatch Indonesia system)
+   Design tokens & maps
 --------------------------------------------------------------------- */
 const COLORS = {
   primary: "#2563EB",
@@ -38,35 +46,200 @@ const STATUS_LABEL = {
   nodata: "Tidak Ada Data",
 };
 
-/* ---------------------------------------------------------------------
-   Mock area/marker data — positioned as % coordinates over the map image
-   so they stay correctly placed at any screen size. Swap MAP_IMAGE_URL
-   for a real map tile/screenshot, or drop the whole <img> once a live
-   map API (Google Maps / Mapbox / Leaflet) is wired in.
---------------------------------------------------------------------- */
-const MAP_IMAGE_URL =
-  "https://placehold.co/1600x1000/E9EEF6/94A3B8?font=inter&text=Peta+Indonesia+%28ganti+dengan+Map+API%29";
-
-const AREAS = [
-  { key: "sumatra", name: "Sumatera Utara", city: "Medan", status: "moderate", cases: 184, trend: -4, x: 18, y: 30, breaking: false },
-  { key: "jakarta", name: "DKI Jakarta", city: "Jakarta", status: "danger", cases: 412, trend: 11, x: 39, y: 63, breaking: true },
-  { key: "kalimantan", name: "Kalimantan Timur", city: "Balikpapan", status: "safe", cases: 62, trend: -9, x: 54, y: 40, breaking: false },
-  { key: "sulawesi", name: "Sulawesi Selatan", city: "Makassar", status: "high", cases: 231, trend: 6, x: 66, y: 52, breaking: true },
-  { key: "bali", name: "Bali", city: "Denpasar", status: "safe", cases: 41, trend: -12, x: 56, y: 72, breaking: false },
-  { key: "maluku", name: "Maluku", city: "Ambon", status: "moderate", cases: 57, trend: 2, x: 79, y: 50, breaking: false },
-  { key: "papua", name: "Papua", city: "Jayapura", status: "nodata", cases: 0, trend: 0, x: 91, y: 42, breaking: false },
-];
-
 const LEGEND = [
   { status: "safe", label: "Aman" },
   { status: "moderate", label: "Sedang" },
   { status: "high", label: "Tinggi" },
   { status: "danger", label: "Bahaya" },
-  { status: "nodata", label: "Tidak Ada Data" },
 ];
 
 /* ---------------------------------------------------------------------
-   Small building blocks
+   Mock Crime Articles Data (Geolocated across Indonesia)
+--------------------------------------------------------------------- */
+const MOCK_CRIMES = [
+  {
+    id: 1,
+    title: "Pencurian Sepeda Motor di Parkiran Minimarket Stasiun Gambir",
+    category: "Pencurian",
+    severity: "danger",
+    province: "DKI Jakarta",
+    city: "Jakarta Pusat",
+    latitude: -6.1767,
+    longitude: 106.8308,
+    date: "2026-07-12",
+    source: "DetikNews",
+    trend: 12,
+  },
+  {
+    id: 2,
+    title: "Aksi Begal Gagalkan Perjalanan Pekerja Malam di Kemayoran",
+    category: "Kekerasan",
+    severity: "danger",
+    province: "DKI Jakarta",
+    city: "Jakarta Pusat",
+    latitude: -6.1585,
+    longitude: 106.8456,
+    date: "2026-07-11",
+    source: "Kompas",
+    trend: 8,
+  },
+  {
+    id: 3,
+    title: "Laporan Penipuan Online Modus Kurir Paket Mengincar Warga",
+    category: "Penipuan Online",
+    severity: "moderate",
+    province: "DKI Jakarta",
+    city: "Jakarta Selatan",
+    latitude: -6.2615,
+    longitude: 106.8106,
+    date: "2026-07-09",
+    source: "Tribun",
+    trend: -2,
+  },
+  {
+    id: 4,
+    title: "Pencurian Rumah Kosong Terjadi Saat Pemilik Mudik Singkat",
+    category: "Pencurian",
+    severity: "high",
+    province: "Jawa Barat",
+    city: "Bandung",
+    latitude: -6.9175,
+    longitude: 107.6191,
+    date: "2026-07-10",
+    source: "Pikiran Rakyat",
+    trend: 5,
+  },
+  {
+    id: 5,
+    title: "Penggagalan Peredaran Narkoba di Kawasan Pelabuhan Belawan",
+    category: "Narkoba",
+    severity: "high",
+    province: "Sumatera Utara",
+    city: "Medan",
+    latitude: 3.7844,
+    longitude: 98.6908,
+    date: "2026-07-08",
+    source: "Waspada",
+    trend: -4,
+  },
+  {
+    id: 6,
+    title: "Pencurian HP dan Barang Berharga di Area Wisata Pantai Losari",
+    category: "Pencurian",
+    severity: "high",
+    province: "Sulawesi Selatan",
+    city: "Makassar",
+    latitude: -5.1477,
+    longitude: 119.4087,
+    date: "2026-07-13",
+    source: "Fajar",
+    trend: 6,
+  },
+  {
+    id: 7,
+    title: "Penangkapan Pelaku Curanmor Spesialis Kunci T di Kuta",
+    category: "Pencurian",
+    severity: "moderate",
+    province: "Bali",
+    city: "Denpasar",
+    latitude: -8.718,
+    longitude: 115.1686,
+    date: "2026-07-07",
+    source: "Radar Bali",
+    trend: -10,
+  },
+  {
+    id: 8,
+    title: "Operasi Penertiban Kendaraan Terkait Sindikat Pencurian Mobil",
+    category: "Pencurian",
+    severity: "safe",
+    province: "Kalimantan Timur",
+    city: "Balikpapan",
+    latitude: -1.2379,
+    longitude: 116.8529,
+    date: "2026-07-05",
+    source: "Kaltim Post",
+    trend: -8,
+  },
+  {
+    id: 9,
+    title: "Pencurian Helm dan Aksesoris Motor Marak di Parkiran Kampus UI",
+    category: "Pencurian",
+    severity: "moderate",
+    province: "Jawa Barat",
+    city: "Depok",
+    latitude: -6.3652,
+    longitude: 106.8315,
+    date: "2026-07-13",
+    source: "DepokNews",
+    trend: 3,
+  },
+  {
+    id: 10,
+    title: "Kasus Penipuan Investasi Bodong Diungkap Kepolisian Setempat",
+    category: "Penipuan Online",
+    severity: "moderate",
+    province: "Jawa Timur",
+    city: "Surabaya",
+    latitude: -7.2575,
+    longitude: 112.7521,
+    date: "2026-07-06",
+    source: "Jawa Pos",
+    trend: 0,
+  },
+  {
+    id: 11,
+    title: "Pencurian Pertokoan Malam Hari Berhasil Terekam CCTV Warga",
+    category: "Pencurian",
+    severity: "danger",
+    province: "DKI Jakarta",
+    city: "Jakarta Barat",
+    latitude: -6.1683,
+    longitude: 106.7589,
+    date: "2026-07-14",
+    source: "BeritaSatu",
+    trend: 15,
+  },
+  {
+    id: 12,
+    title: "Aksi Copet Terjaring Razia Petugas Keamanan Pasar Gedhe",
+    category: "Pencurian",
+    severity: "safe",
+    province: "Jawa Tengah",
+    city: "Surakarta",
+    latitude: -7.5694,
+    longitude: 110.8291,
+    date: "2026-07-04",
+    source: "Solopos",
+    trend: -12,
+  },
+];
+
+/* ---------------------------------------------------------------------
+   Custom Leaflet Marker Icon Factory
+--------------------------------------------------------------------- */
+function createCustomIcon(severity = "moderate", isBreaking = false) {
+  const color = COLORS[severity] || COLORS.moderate;
+  const pulseHtml = isBreaking
+    ? `<span style="position:absolute; width:24px; height:24px; background:${color}; opacity:0.5; border-radius:50%; animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></span>`
+    : "";
+
+  return L.divIcon({
+    className: "custom-leaflet-marker",
+    html: `
+      <div style="position:relative; display:flex; align-items:center; justify-content:center; width:32px; height:32px;">
+        ${pulseHtml}
+        <div style="background:${color}; width:16px; height:16px; border-radius:50%; border:3px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.3); z-index:2;"></div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -12],
+  });
+}
+
+/* ---------------------------------------------------------------------
+   Small UI Helper Components
 --------------------------------------------------------------------- */
 function StatusBadge({ status }) {
   const bgMap = { safe: "#F0FDF4", moderate: "#FEFCE8", high: "#FFF7ED", danger: "#FEF2F2", nodata: "#F1F5F9" };
@@ -82,16 +255,19 @@ function StatusBadge({ status }) {
   );
 }
 
-function FilterSelect({ icon: Icon, defaultValue, options }) {
+function FilterSelect({ icon: Icon, value, onChange, options }) {
   return (
-    <label className="flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-md">
+    <label className="flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-md cursor-pointer border border-slate-100 hover:border-slate-300 transition-colors">
       <Icon className="h-[15px] w-[15px]" style={{ color: COLORS.primary }} />
       <select
-        defaultValue={defaultValue}
-        className="cursor-pointer appearance-none bg-transparent pr-1 outline-none"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="cursor-pointer appearance-none bg-transparent pr-1 outline-none font-medium text-slate-800"
       >
         {options.map((o) => (
-          <option key={o}>{o}</option>
+          <option key={o} value={o}>
+            {o}
+          </option>
         ))}
       </select>
       <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
@@ -99,146 +275,221 @@ function FilterSelect({ icon: Icon, defaultValue, options }) {
   );
 }
 
-/* ---------------------------------------------------------------------
-   Area info card content (shared between desktop popover & mobile sheet)
---------------------------------------------------------------------- */
-function AreaInfo({ area, onClose, onViewNews }) {
+function CustomZoomControl() {
+  const map = useMap();
   return (
-    <div className="relative">
+    <div className="hidden flex-col overflow-hidden rounded-lg bg-white shadow-lg border border-slate-100 md:flex z-[1000]">
       <button
-        onClick={onClose}
-        aria-label="Tutup"
-        className="absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        onClick={() => map.zoomIn()}
+        aria-label="Perbesar"
+        className="flex h-10 w-10 items-center justify-center border-b border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
       >
-        <X className="h-4 w-4" />
+        <Plus className="h-4 w-4" />
       </button>
-
-      <h4 className="pr-8 text-[15px] font-bold text-slate-900">{area.name}</h4>
-      <div className="mt-2">
-        <StatusBadge status={area.status} />
-      </div>
-
-      <div className="mt-3 divide-y divide-slate-200 border-t border-slate-200 text-[12.5px]">
-        <div className="flex items-center justify-between py-2">
-          <span className="text-slate-500">Kota utama</span>
-          <span className="font-bold text-slate-900">{area.city}</span>
-        </div>
-        <div className="flex items-center justify-between py-2">
-          <span className="text-slate-500">Total kasus (30 hari)</span>
-          <span className="font-bold text-slate-900">{area.cases}</span>
-        </div>
-        <div className="flex items-center justify-between py-2">
-          <span className="text-slate-500">Tren mingguan</span>
-          <span className="font-bold" style={{ color: area.trend > 0 ? COLORS.danger : "#15803D" }}>
-            {area.trend > 0 ? "+" : ""}
-            {area.trend}%
-          </span>
-        </div>
-      </div>
-
       <button
-        onClick={onViewNews}
-        className="mt-4 w-full rounded-lg py-2.5 text-[13.5px] font-semibold text-white shadow-sm transition-colors"
-        style={{ background: COLORS.primary }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.primaryDark)}
-        onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.primary)}
+        onClick={() => map.zoomOut()}
+        aria-label="Perkecil"
+        className="flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
       >
-        Lihat Berita Wilayah Ini
+        <Minus className="h-4 w-4" />
       </button>
     </div>
   );
 }
 
+function GeolocationButton() {
+  const map = useMap();
+  const [locating, setLocating] = useState(false);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      alert("Geolokasi tidak didukung oleh peramban Anda.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false);
+        map.flyTo([pos.coords.latitude, pos.coords.longitude], 13, { duration: 1.5 });
+      },
+      () => {
+        setLocating(false);
+        alert("Gagal mendapatkan lokasi Anda.");
+      }
+    );
+  };
+
+  return (
+    <button
+      onClick={handleLocate}
+      aria-label="Lokasi saya"
+      className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-lg border border-slate-100 transition-colors hover:bg-slate-50 z-[1000]"
+      style={{ color: COLORS.primary }}
+    >
+      <LocateFixed className={`h-[18px] w-[18px] ${locating ? "animate-spin" : ""}`} />
+    </button>
+  );
+}
+
 /* ---------------------------------------------------------------------
-   Map page
+   Main Map Page Component
 --------------------------------------------------------------------- */
 export default function MapPage() {
-  const [selectedKey, setSelectedKey] = useState(null);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProvince, setSelectedProvince] = useState("Semua Provinsi");
+  const [selectedCity, setSelectedCity] = useState("Semua Kota");
+  const [selectedCategory, setSelectedCategory] = useState("Semua Jenis Kejahatan");
+  const [selectedTimeRange, setSelectedTimeRange] = useState("30 Hari Terakhir");
   const [heatmapOn, setHeatmapOn] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [bounds, setBounds] = useState(null);
 
-  const selectedArea = AREAS.find((a) => a.key === selectedKey) || null;
+  // Available options derived from data
+  const PROVINCE_OPTIONS = ["Semua Provinsi", "DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur", "Sumatera Utara", "Sulawesi Selatan", "Bali", "Kalimantan Timur"];
+  const CITY_OPTIONS = ["Semua Kota", "Jakarta Pusat", "Jakarta Selatan", "Jakarta Barat", "Bandung", "Depok", "Surabaya", "Surakarta", "Medan", "Makassar", "Denpasar", "Balikpapan"];
+  const CATEGORY_OPTIONS = ["Semua Jenis Kejahatan", "Pencurian", "Kekerasan", "Narkoba", "Penipuan Online"];
+  const TIME_OPTIONS = ["30 Hari Terakhir", "7 Hari Terakhir", "3 Bulan Terakhir"];
+
+  // Filtered crime dataset based on active filters
+  const filteredCrimes = useMemo(() => {
+    return MOCK_CRIMES.filter((crime) => {
+      // Search text filter
+      if (
+        searchQuery &&
+        !crime.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !crime.city.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !crime.province.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+      // Province filter
+      if (selectedProvince !== "Semua Provinsi" && crime.province !== selectedProvince) {
+        return false;
+      }
+      // City filter
+      if (selectedCity !== "Semua Kota" && crime.city !== selectedCity) {
+        return false;
+      }
+      // Category filter
+      if (selectedCategory !== "Semua Jenis Kejahatan" && crime.category !== selectedCategory) {
+        return false;
+      }
+      return true;
+    });
+  }, [searchQuery, selectedProvince, selectedCity, selectedCategory, selectedTimeRange]);
+
+  // Convert filtered crimes to heatmap points array [lat, lng, intensity]
+  const heatmapPoints = useMemo(() => {
+    const intensityMap = { safe: 0.3, moderate: 0.6, high: 0.8, danger: 1.0 };
+    return filteredCrimes.map((c) => [c.latitude, c.longitude, intensityMap[c.severity] || 0.5]);
+  }, [filteredCrimes]);
+
+  const handleViewNews = (crime) => {
+    navigate(`/news?query=${encodeURIComponent(crime.title)}`);
+  };
 
   return (
     <div
       className="relative w-full overflow-hidden bg-slate-100"
       style={{ height: "100dvh", fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');`}</style>
+      {/* Dynamic Keyframe Injection for Ping Animation */}
+      <style>{`
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+      `}</style>
 
-      {/* ============ MAP CANVAS ============
-          Placeholder <img> for now — swap the src (or replace this whole
-          layer with a live map instance) once the map API is wired in. */}
-      <div className="absolute inset-0">
-        <img
-          src={MAP_IMAGE_URL}
-          alt="Peta kriminalitas Indonesia"
-          className="h-full w-full object-cover transition-all duration-200"
-          style={{
-            transform: `scale(${zoom})`,
-            filter: heatmapOn ? "none" : "saturate(0.35) brightness(1.05)",
-          }}
-          draggable={false}
+      {/* ============ LEAFLET MAP CONTAINER ============ */}
+      <MapContainer
+        center={[-2.5489, 118.0149]}
+        zoom={5}
+        zoomControl={false}
+        scrollWheelZoom={true}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* markers, positioned as % over the image so they track any screen size */}
-        {AREAS.map((area) => (
-          <button
-            key={area.key}
-            onClick={() => setSelectedKey(area.key)}
-            aria-label={`${area.name} — ${STATUS_LABEL[area.status]}`}
-            className="absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-            style={{ left: `${area.x}%`, top: `${area.y}%` }}
-          >
-            {area.breaking && (
-              <span
-                className="absolute h-4 w-4 animate-ping rounded-full opacity-60"
-                style={{ background: COLORS[area.status] }}
-              />
-            )}
-            <span
-              className="h-3.5 w-3.5 rounded-full border-2 border-white shadow"
-              style={{ background: COLORS[area.status] }}
-            />
-          </button>
-        ))}
+        <MapEventHandler onBoundsChange={setBounds} />
 
-        {/* desktop info popover, anchored to the selected marker */}
-        {selectedArea && (
-          <div
-            className="absolute z-20 hidden w-[280px] -translate-x-1/2 rounded-xl bg-white p-4 shadow-2xl md:block"
-            style={{ left: `${selectedArea.x}%`, top: `${selectedArea.y}%`, transform: "translate(-50%, calc(-100% - 18px))" }}
-          >
-            <AreaInfo
-              area={selectedArea}
-              onClose={() => setSelectedKey(null)}
-              onViewNews={() => { /* navigate to news filtered by this area */ }}
-            />
-            <span className="absolute left-1/2 top-full h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-white" />
-          </div>
-        )}
-      </div>
+        {/* Heatmap Layer */}
+        {heatmapOn && <HeatmapLayer points={heatmapPoints} />}
 
-      {/* ============ DESKTOP FLOATING TOOLBAR (search + filters) ============ */}
-      <div className="absolute left-4 right-4 top-4 z-30 hidden flex-wrap items-center gap-2.5 md:flex">
-        <div className="flex min-w-[220px] max-w-[360px] flex-1 items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-lg">
+        {/* Marker Clustering Group */}
+        <MarkerClusterGroup chunkedLoading maxClusterRadius={40}>
+          {filteredCrimes.map((crime) => (
+            <Marker
+              key={crime.id}
+              position={[crime.latitude, crime.longitude]}
+              icon={createCustomIcon(crime.severity, crime.severity === "danger")}
+            >
+              <Popup closeButton={true} className="crime-popup">
+                <CrimeMarkerPopup crime={crime} onViewNews={handleViewNews} />
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
+
+        {/* Map Embedded Controls (Zoom & Location) */}
+        <div className="absolute bottom-3 right-3 z-[1000] flex flex-col items-end gap-2.5 md:bottom-4 md:right-4">
+          <GeolocationButton />
+          <CustomZoomControl />
+        </div>
+      </MapContainer>
+
+      {/* ============ DESKTOP FLOATING TOOLBAR ============ */}
+      <div className="absolute left-4 right-4 top-4 z-[1000] hidden flex-wrap items-center gap-2.5 md:flex">
+        <div className="flex min-w-[220px] max-w-[360px] flex-1 items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-lg border border-slate-100">
           <Search className="h-[18px] w-[18px] text-slate-400" />
           <input
             type="text"
-            placeholder="Cari provinsi atau kota..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari provinsi, kota, atau judul..."
             className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-slate-400"
           />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        <FilterSelect icon={MapPin} defaultValue="Semua Provinsi" options={["Semua Provinsi", "DKI Jakarta", "Jawa Barat", "Sumatera Utara", "Sulawesi Selatan"]} />
-        <FilterSelect icon={Globe2} defaultValue="Semua Kota" options={["Semua Kota", "Jakarta Selatan", "Bandung", "Medan"]} />
-        <FilterSelect icon={ShieldAlert} defaultValue="Semua Jenis Kejahatan" options={["Semua Jenis Kejahatan", "Pencurian", "Kekerasan", "Narkoba", "Penipuan Online"]} />
-        <FilterSelect icon={CalendarDays} defaultValue="30 Hari Terakhir" options={["30 Hari Terakhir", "7 Hari Terakhir", "3 Bulan Terakhir"]} />
+        <FilterSelect
+          icon={MapPin}
+          value={selectedProvince}
+          onChange={setSelectedProvince}
+          options={PROVINCE_OPTIONS}
+        />
+        <FilterSelect
+          icon={Globe2}
+          value={selectedCity}
+          onChange={setSelectedCity}
+          options={CITY_OPTIONS}
+        />
+        <FilterSelect
+          icon={ShieldAlert}
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+          options={CATEGORY_OPTIONS}
+        />
+        <FilterSelect
+          icon={CalendarDays}
+          value={selectedTimeRange}
+          onChange={setSelectedTimeRange}
+          options={TIME_OPTIONS}
+        />
 
         <button
           onClick={() => setHeatmapOn((v) => !v)}
-          className="flex shrink-0 items-center gap-2.5 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-lg"
+          className="flex shrink-0 items-center gap-2.5 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-900 shadow-lg border border-slate-100 cursor-pointer"
         >
           <span
             className="relative h-[19px] w-[34px] rounded-full transition-colors"
@@ -253,12 +504,14 @@ export default function MapPage() {
         </button>
       </div>
 
-      {/* ============ MOBILE TOP BAR (search + filter button) ============ */}
-      <div className="absolute left-3 right-3 top-3 z-30 flex items-center gap-2 md:hidden">
-        <div className="flex flex-1 items-center gap-2 rounded-full bg-white px-3.5 py-2.5 shadow-lg">
+      {/* ============ MOBILE TOP BAR ============ */}
+      <div className="absolute left-3 right-3 top-3 z-[1000] flex items-center gap-2 md:hidden">
+        <div className="flex flex-1 items-center gap-2 rounded-full bg-white px-3.5 py-2.5 shadow-lg border border-slate-100">
           <Search className="h-[17px] w-[17px] shrink-0 text-slate-400" />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari provinsi atau kota..."
             className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"
           />
@@ -266,7 +519,7 @@ export default function MapPage() {
         <button
           onClick={() => setMobileFiltersOpen(true)}
           aria-label="Buka filter"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-lg"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-lg border border-slate-100"
           style={{ color: COLORS.primary }}
         >
           <SlidersHorizontal className="h-5 w-5" />
@@ -275,11 +528,11 @@ export default function MapPage() {
 
       {/* ============ MOBILE FILTER BOTTOM SHEET ============ */}
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-40 flex items-end md:hidden">
+        <div className="fixed inset-0 z-[2000] flex items-end md:hidden">
           <div className="absolute inset-0 bg-slate-900/40" onClick={() => setMobileFiltersOpen(false)} />
           <div className="relative z-10 max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-slate-900">Filter Peta</h3>
+              <h3 className="text-[16px] font-bold text-slate-900">Filter Peta Kriminalitas</h3>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-label="Tutup filter"
@@ -290,24 +543,69 @@ export default function MapPage() {
             </div>
 
             <div className="space-y-3">
-              {[
-                { icon: MapPin, label: "Provinsi", options: ["Semua Provinsi", "DKI Jakarta", "Jawa Barat", "Sumatera Utara", "Sulawesi Selatan"] },
-                { icon: Globe2, label: "Kota", options: ["Semua Kota", "Jakarta Selatan", "Bandung", "Medan"] },
-                { icon: ShieldAlert, label: "Jenis Kejahatan", options: ["Semua Jenis Kejahatan", "Pencurian", "Kekerasan", "Narkoba", "Penipuan Online"] },
-                { icon: CalendarDays, label: "Rentang Tanggal", options: ["30 Hari Terakhir", "7 Hari Terakhir", "3 Bulan Terakhir"] },
-              ].map(({ icon: Icon, label, options }) => (
-                <div key={label}>
-                  <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
-                  <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
-                    <Icon className="h-4 w-4 shrink-0 text-slate-400" />
-                    <select defaultValue={options[0]} className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none">
-                      {options.map((o) => (
-                        <option key={o}>{o}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              ))}
+              <div>
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Provinsi</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                  <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
+                  <select
+                    value={selectedProvince}
+                    onChange={(e) => setSelectedProvince(e.target.value)}
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                  >
+                    {PROVINCE_OPTIONS.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div>
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Kota</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                  <Globe2 className="h-4 w-4 shrink-0 text-slate-400" />
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                  >
+                    {CITY_OPTIONS.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div>
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Jenis Kejahatan</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                  <ShieldAlert className="h-4 w-4 shrink-0 text-slate-400" />
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                  >
+                    {CATEGORY_OPTIONS.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div>
+                <span className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wide text-slate-500">Rentang Waktu</span>
+                <label className="flex items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+                  <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
+                  <select
+                    value={selectedTimeRange}
+                    onChange={(e) => setSelectedTimeRange(e.target.value)}
+                    className="w-full bg-transparent text-[14px] font-medium text-slate-900 outline-none"
+                  >
+                    {TIME_OPTIONS.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
 
               <button
                 onClick={() => setHeatmapOn((v) => !v)}
@@ -331,64 +629,27 @@ export default function MapPage() {
               className="mt-5 w-full rounded-lg py-3 text-[14px] font-semibold text-white shadow-sm"
               style={{ background: COLORS.primary }}
             >
-              Terapkan Filter
+              Terapkan Filter ({filteredCrimes.length} Kejadian)
             </button>
           </div>
         </div>
       )}
 
       {/* ============ LEGEND — bottom-left ============ */}
-      <div className="absolute bottom-3 left-3 z-20 max-w-[calc(100vw-5.5rem)] overflow-x-auto rounded-xl bg-white px-3.5 py-2.5 shadow-lg md:bottom-4 md:left-4 md:max-w-none">
+      <div className="absolute bottom-3 left-3 z-[1000] max-w-[calc(100vw-5.5rem)] overflow-x-auto rounded-xl bg-white px-3.5 py-2.5 shadow-lg border border-slate-100 md:bottom-4 md:left-4 md:max-w-none">
         <div className="flex items-center gap-3 whitespace-nowrap md:gap-4">
+          <span className="text-[11.5px] font-bold text-slate-700">Severity:</span>
           {LEGEND.map((l) => (
-            <span key={l.status} className="flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-500">
-              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: COLORS[l.status] }} />
+            <span key={l.status} className="flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-600">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: COLORS[l.status] }} />
               {l.label}
             </span>
           ))}
+          <span className="text-[11px] text-slate-400 border-l border-slate-200 pl-3">
+            {filteredCrimes.length} Kejadian Ditemukan
+          </span>
         </div>
       </div>
-
-      {/* ============ ZOOM (desktop only) + LOCATE controls — bottom-right ============ */}
-      <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-2.5 md:bottom-4 md:right-4">
-        <button
-          aria-label="Lokasi saya"
-          className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-lg"
-          style={{ color: COLORS.primary }}
-        >
-          <LocateFixed className="h-[18px] w-[18px]" />
-        </button>
-        <div className="hidden flex-col overflow-hidden rounded-lg bg-white shadow-lg md:flex">
-          <button
-            onClick={() => setZoom((z) => Math.min(1.5, +(z + 0.15).toFixed(2)))}
-            aria-label="Perbesar"
-            className="flex h-10 w-10 items-center justify-center border-b border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-blue-600"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.85, +(z - 0.15).toFixed(2)))}
-            aria-label="Perkecil"
-            className="flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-slate-50 hover:text-blue-600"
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* ============ MOBILE INFO BOTTOM SHEET (selected area) ============ */}
-      {selectedArea && (
-        <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
-          <div className="rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" />
-            <AreaInfo
-              area={selectedArea}
-              onClose={() => setSelectedKey(null)}
-              onViewNews={() => { /* navigate to news filtered by this area */ }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
