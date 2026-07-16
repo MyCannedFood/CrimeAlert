@@ -167,13 +167,30 @@ export const api = {
         .sort((a, b) => b.total - a.total)
     },
 
-    trend: async () => {
+    trend: async (monthsBack = 12) => {
       if (!supabase) return []
-      const { data, error } = await supabase.from('crime_articles').select('published')
+      const since = new Date()
+      since.setMonth(since.getMonth() - monthsBack)
+      const sinceStr = since.toISOString()
+      const { data, error } = await supabase
+        .from('crime_articles')
+        .select('published')
+        .gte('published', sinceStr)
       if (error || !data) return []
       const months = {}
       data.forEach(c => { if (c.published) { const m = c.published.slice(0, 7); months[m] = (months[m] || 0) + 1 } })
-      return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, incidents]) => ({ month, incidents }))
+      const now = new Date()
+      const endYear = now.getFullYear()
+      const endMonth = now.getMonth() + 1
+      let y = since.getFullYear(), m = since.getMonth() + 1
+      const result = []
+      while (y < endYear || (y === endYear && m <= endMonth)) {
+        const key = `${y}-${String(m).padStart(2, '0')}`
+        result.push({ month: key, incidents: months[key] || 0 })
+        m++
+        if (m > 12) { m = 1; y++ }
+      }
+      return result
     },
   },
   geo: {

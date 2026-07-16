@@ -82,27 +82,20 @@ export default function Statistics() {
         value: p.total,
     }));
 
-    const provTotals = provinceItems.map((x) => x.value).filter((v) => Number.isFinite(v));
-    const provMin = provTotals.length ? Math.min(...provTotals) : 0;
-    const provMax = provTotals.length ? Math.max(...provTotals) : 0;
+    const totalAllCases = provinceItems.reduce((sum, item) => sum + item.value, 0);
 
-    const normalizeScore = (x) => {
-        if (provMax === provMin) return 0; // avoid divide by zero
-        return ((x - provMin) / (provMax - provMin)) * 100;
-    };
-
-    const getRiskCategory = (score) => {
-        if (score >= 70) return 'bahaya';
-        if (score >= 40) return 'tinggi';
+    const getRiskCategory = (pct) => {
+        if (pct >= 15) return 'bahaya';
+        if (pct >= 5) return 'tinggi';
         return 'sedang';
     };
 
     const provinceItemsWithScore = provinceItems.map((item) => {
-        const score = Math.max(0, Math.min(100, normalizeScore(item.value)));
-        const category = getRiskCategory(score);
+        const pct = totalAllCases > 0 ? (item.value / totalAllCases) * 100 : 0;
+        const category = getRiskCategory(pct);
         return {
             ...item,
-            score: Math.round(score * 10) / 10,
+            score: Math.round(pct * 10) / 10,
             color: TOP_COLOR[category],
         };
     });
@@ -357,23 +350,20 @@ export default function Statistics() {
                                     <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full" />
                                 </div>
                             ))}
-                            {!loading && provinceItemsWithScore.slice(0, 10).map((prov, i) => {
-                                const maxVal = provinceItemsWithScore.length > 0 ? provinceItemsWithScore[0].value : 100;
-                                return (
-                                    <div key={i} className="flex flex-col">
-                                        <div className="flex items-center justify-between gap-2 mb-1">
-                                            <span className="text-xs font-bold text-gray-800 dark:text-slate-200">{prov.name}</span>
-                                            <span className="text-[11px] font-bold text-gray-600 dark:text-slate-300">{Math.round(prov.score)}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
-                                            <div
-                                                className={`${prov.color} h-full rounded-full`}
-                                                style={{ width: `${(prov.value / maxVal) * 100}%` }}
-                                            ></div>
-                                        </div>
+                            {!loading && provinceItemsWithScore.slice(0, 10).map((prov, i) => (
+                                <div key={i} className="flex flex-col">
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <span className="text-xs font-bold text-gray-800 dark:text-slate-200">{prov.name}</span>
+                                        <span className="text-[11px] font-bold text-gray-600 dark:text-slate-300">{Math.round(prov.score)}%</span>
                                     </div>
-                                );
-                            })}
+                                    <div className="w-full bg-gray-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                                        <div
+                                            className={`${prov.color} h-full rounded-full`}
+                                            style={{ width: `${prov.score}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ))}
 
                         </div>
 
