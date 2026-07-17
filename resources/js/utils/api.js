@@ -286,9 +286,34 @@ export const api = {
     },
     create: async (reportData) => {
       if (!supabase) return null
-      const { data, error } = await supabase.from('community_reports').insert([reportData]).select().single()
-      if (error) { console.error(error); throw error }
-      return data
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) {
+        throw new Error('Anda harus masuk untuk membuat laporan.')
+      }
+      const payload = { ...reportData, reporter_id: session.user.id }
+      const response = await fetch('/api/community-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || 'Gagal menyimpan laporan')
+      }
+      return await response.json()
+    },
+    destroy: async (id) => {
+      if (!supabase) return false
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return false
+      const response = await fetch(`/api/community-reports/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+      })
+      return response.ok
     },
     vote: async (reportId, userId, voteType) => {
       if (!supabase) return null

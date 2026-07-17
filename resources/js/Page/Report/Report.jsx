@@ -10,6 +10,7 @@ import {
     LogIn 
 } from 'lucide-react';
 import Dropdown from '../../Components/Dropdown';
+import FloatingActionButton from '../../Components/FloatingActionButton';
 import Footer from '../../Components/Footer';
 import ReportCard from './ReportCard';
 import CreateReportModal from './CreateReportModal';
@@ -102,6 +103,22 @@ export default function Report() {
         }
     };
 
+    const handleDeleteReport = async (id) => {
+        const confirmed = confirm('Apakah Anda yakin ingin menghapus laporan ini? Tindakan ini tidak dapat dibatalkan.');
+        if (!confirmed) return;
+        try {
+            const success = await api.reports.destroy(id);
+            if (success) {
+                setReports((prev) => prev.filter((r) => r.id !== id));
+            } else {
+                setAuthAlert('Gagal menghapus laporan. Coba lagi.');
+            }
+        } catch (err) {
+            console.error('Delete report failed:', err);
+            setAuthAlert(err?.message || 'Gagal menghapus laporan.');
+        }
+    };
+
     const handleVote = (id, newVote) => {
         const getUserId = () => {
             let uid = localStorage.getItem('crimealert_user_id');
@@ -144,13 +161,7 @@ export default function Report() {
                         </p>
                     </div>
 
-                    <button
-                        onClick={openCreateModal}
-                        className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold text-sm rounded-lg shadow-sm transition-all cursor-pointer border border-transparent"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Buat Laporan
-                    </button>
+
                 </div>
             </div>
 
@@ -248,7 +259,7 @@ export default function Report() {
                     )}
 
                     {!loading && filteredReports.map((report) => (
-                        <ReportCard key={report.id} report={report} onVote={handleVote} />
+                        <ReportCard key={report.id} report={report} onVote={handleVote} user={user} onDelete={handleDeleteReport} />
                     ))}
                 </div>
             </div>
@@ -261,6 +272,7 @@ export default function Report() {
                 user={user}
             />
 
+            <FloatingActionButton onClick={openCreateModal} />
             <Footer />
         </div>
     );

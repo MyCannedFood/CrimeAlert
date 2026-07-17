@@ -47,16 +47,9 @@ export default function ReportDetail() {
     }, [id]);
 
     useEffect(() => {
-        let url = null;
         if (report?.image_url) {
-            fetchReportImageUrl(report.image_url).then(result => {
-                url = result;
-                setImageUrl(result);
-            });
+            fetchReportImageUrl(report.image_url).then(setImageUrl);
         }
-        return () => {
-            if (url) URL.revokeObjectURL(url);
-        };
     }, [report?.image_url]);
 
     return (

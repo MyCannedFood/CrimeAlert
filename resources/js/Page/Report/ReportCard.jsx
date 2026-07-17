@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
     ArrowBigUp,
@@ -8,7 +8,9 @@ import {
     MessageSquare,
     CheckCircle2,
     Clock,
-    ImageOff
+    ImageOff,
+    MoreHorizontal,
+    Trash2
 } from 'lucide-react';
 import { fetchReportImageUrl } from '../../utils/image';
 
@@ -25,23 +27,37 @@ function formatTime(dateStr) {
     return date.toLocaleDateString('id-ID');
 }
 
-export default function ReportCard({ report, onVote }) {
+export default function ReportCard({ report, onVote, user, onDelete }) {
     const [voteCount, setVoteCount] = useState((report.upvotes || 0) - (report.downvotes || 0));
     const [userVote, setUserVote] = useState(report.userVote || null);
     const [imageUrl, setImageUrl] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef(null);
 
     useEffect(() => {
-        let url = null;
         if (report.image_url) {
-            fetchReportImageUrl(report.image_url).then(result => {
-                url = result;
-                setImageUrl(result);
-            });
+            fetchReportImageUrl(report.image_url).then(setImageUrl);
         }
-        return () => {
-            if (url) URL.revokeObjectURL(url);
-        };
     }, [report.image_url]);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const isOwner = user?.id && user.id === report.reporter_id;
+
+    const handleDelete = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenuOpen(false);
+        if (onDelete) onDelete(report.id);
+    };
 
     const handleVote = (e, type) => {
         e.preventDefault();
@@ -66,7 +82,29 @@ export default function ReportCard({ report, onVote }) {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 md:p-5 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex gap-4 items-start">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 md:p-5 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex gap-4 items-start relative">
+            {isOwner && (
+                <div className="absolute top-3 right-3 z-10" ref={menuRef}>
+                    <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(!menuOpen); }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        aria-label="Menu"
+                    >
+                        <MoreHorizontal className="w-5 h-5" />
+                    </button>
+                    {menuOpen && (
+                        <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
+                            <button
+                                onClick={handleDelete}
+                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer font-medium"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Hapus Laporan
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
             <div className="flex flex-col items-center bg-slate-50/80 dark:bg-slate-800/80 rounded-lg p-1 min-w-[40px] border border-slate-100 dark:border-slate-700/50">
                 <button
                     onClick={(e) => handleVote(e, 'up')}
