@@ -24,7 +24,7 @@ export const PROVINCE_CONTACTS = {
   ],
   'Banten': [
     { name: 'Polda Banten', phone: '0254-210110', type: 'police' },
-    { name: 'RS Sakinah', phone: '021-1234567', type: 'hospital' },
+    { name: 'RS Sakinah', phone: '-', type: 'hospital' },
     { name: 'Damkar Serang', phone: '0254-200113', type: 'fire' },
   ],
   'default': [

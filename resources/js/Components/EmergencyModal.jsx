@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Phone, MapPin, Shield, Ambulance as AmbulanceIcon, Flame, Search, Zap, Navigation } from 'lucide-react';
+import { X, Phone, MapPin, Shield, Ambulance as AmbulanceIcon, Flame, Search, Zap } from 'lucide-react';
 import { NATIONAL_CONTACTS, PROVINCE_CONTACTS } from '../data/emergencyContacts';
 
 const ICON_MAP = {
@@ -20,6 +20,7 @@ const CONTACT_DEFAULTS = { bg: 'bg-slate-50 dark:bg-slate-800', border: 'border-
 
 export default function EmergencyModal({ isOpen, onClose }) {
   const [location, setLocation] = useState(null);
+  const [address, setAddress] = useState('');
   const [locationError, setLocationError] = useState('');
   const [activeTab, setActiveTab] = useState('nasional');
   const [province, setProvince] = useState('default');
@@ -41,6 +42,7 @@ export default function EmergencyModal({ isOpen, onClose }) {
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=id`
           );
           const data = await res.json();
+          setAddress(data.display_name || '');
           const addr = data.address || {};
           const prov = addr.state || addr.region || 'default';
           const matched = Object.keys(PROVINCE_CONTACTS).find((p) => prov.includes(p));
@@ -55,16 +57,6 @@ export default function EmergencyModal({ isOpen, onClose }) {
 
   const handleCall = (phone) => {
     window.open(`tel:${phone}`, '_self');
-  };
-
-  const handleShareLocation = () => {
-    if (!location) return;
-    const url = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
-    if (navigator.share) {
-      navigator.share({ title: 'Lokasi Saya - CrimeAlert', text: 'Saya butuh bantuan! Lokasi saya:', url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).then(() => alert('Link lokasi disalin!'));
-    }
   };
 
   if (!isOpen) return null;
@@ -135,20 +127,14 @@ export default function EmergencyModal({ isOpen, onClose }) {
             <>
               {location && (
                 <div className="p-3 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
-                      <span className="text-xs font-semibold text-green-700 dark:text-green-300">
-                        {province !== 'default' ? `Terdeteksi: ${province}` : 'Lokasi terdeteksi'}
-                      </span>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-0.5">Lokasi Terdeteksi</p>
+                      <p className="text-xs text-green-600 dark:text-green-400 leading-relaxed">
+                        {address || `${location.lat}, ${location.lng}`}
+                      </p>
                     </div>
-                    <button
-                      onClick={handleShareLocation}
-                      className="flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 transition-colors cursor-pointer"
-                    >
-                      <Navigation className="w-3.5 h-3.5" />
-                      Bagikan Lokasi
-                    </button>
                   </div>
                 </div>
               )}
