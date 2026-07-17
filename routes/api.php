@@ -4,12 +4,17 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Api\ReportImageController;
 use App\Http\Controllers\Api\CommunityReportController;
+use App\Http\Controllers\Api\CommentController;
 
 Route::post('/images', [ReportImageController::class, 'upload']);
 Route::get('/images/{filename}', [ReportImageController::class, 'show']);
 
 Route::post('/community-reports', [CommunityReportController::class, 'store']);
 Route::delete('/community-reports/{id}', [CommunityReportController::class, 'destroy'])->middleware('auth.supabase');
+
+Route::get('/community-reports/{id}/comments', [CommentController::class, 'index']);
+Route::post('/community-reports/{id}/comments', [CommentController::class, 'store'])->middleware('auth.supabase');
+Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->middleware('auth.supabase');
 
 Route::any('/{any}', function ($any) {
     $fastapiUrl = env('NEWS_SCRAPER_URL', 'http://localhost:10000') . '/api/' . $any;

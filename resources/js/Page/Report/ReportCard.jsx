@@ -6,13 +6,12 @@ import {
     MapPin,
     Tag,
     MessageSquare,
-    CheckCircle2,
-    Clock,
     ImageOff,
     MoreHorizontal,
     Trash2
 } from 'lucide-react';
 import { fetchReportImageUrl } from '../../utils/image';
+import { REPORT_STATUS } from '../../utils/status';
 
 function formatTime(dateStr) {
     if (!dateStr) return 'Baru saja';
@@ -183,23 +182,17 @@ export default function ReportCard({ report, onVote, user, onDelete }) {
                             </span>
                         )}
                         {report.status && (
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-medium text-xs ${
-                                report.status === 'verified'
-                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20'
-                                    : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20'
-                            }`}>
-                                {report.status === 'verified' ? (
-                                    <>
-                                        <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
-                                        Terverifikasi
-                                    </>
-                                ) : (
-                                    <>
-                                        <Clock className="w-3 h-3 text-amber-500 dark:text-amber-400" />
-                                        Menunggu Konfirmasi
-                                    </>
-                                )}
-                            </span>
+                            (() => {
+                                const cfg = REPORT_STATUS[report.status];
+                                if (!cfg) return null;
+                                const Icon = cfg.icon;
+                                return (
+                                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-medium text-xs ${cfg.className}`}>
+                                        <Icon className={`w-3 h-3 ${cfg.iconClass}`} />
+                                        {cfg.label}
+                                    </span>
+                                );
+                            })()
                         )}
                     </div>
 

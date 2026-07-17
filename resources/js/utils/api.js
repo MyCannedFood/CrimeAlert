@@ -333,5 +333,44 @@ export const api = {
       return true
     }
   },
+  comments: {
+    list: async (reportId) => {
+      if (!supabase) return []
+      const { data, error } = await supabase
+        .from('report_comments')
+        .select('*')
+        .eq('report_id', reportId)
+        .order('created_at', { ascending: true })
+      if (error) { console.error('Comments fetch error:', error); return [] }
+      return data || []
+    },
+    create: async (reportId, content, parentId = null) => {
+      if (!supabase) throw new Error('Supabase not available')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) throw new Error('Anda harus masuk untuk berkomentar.')
+      const payload = {
+        report_id: reportId,
+        user_id: session.user.id,
+        username: session.user.email?.split('@')[0] || 'Warga',
+        content,
+        parent_id: parentId || null,
+        created_at: new Date().toISOString(),
+      }
+      const { data, error } = await supabase.from('report_comments').insert([payload]).select()
+      if (error) { console.error('Comment create error:', error); throw new Error(error.message) }
+      return data?.[0] || null
+    },
+    destroy: async (commentId) => {
+      if (!supabase) return false
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) return false
+      const { error } = await supabase
+        .from('report_comments')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', commentId)
+        .eq('user_id', session.user.id)
+      return !error
+    },
+  },
   health: () => request('/health'),
 }

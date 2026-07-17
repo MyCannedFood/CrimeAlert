@@ -8,7 +8,6 @@ import {
     Tag,
     User,
     Clock,
-    CheckCircle2,
     AlertCircle,
     ThumbsUp,
     ImageOff
@@ -16,7 +15,9 @@ import {
 import Footer from '../../Components/Footer';
 import { api } from '../../utils/api';
 import { fetchReportImageUrl } from '../../utils/image';
+import CommentSection from './CommentSection';
 import { useDarkMode } from '../../utils/DarkModeProvider';
+import { REPORT_STATUS } from '../../utils/status';
 
 const locationIcon = L.divIcon({
   className: 'bg-transparent',
@@ -198,24 +199,20 @@ export default function ReportDetail() {
                                 Total Vote: {(report.upvotes || 0) - (report.downvotes || 0)}
                             </div>
 
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
-                                report.status === 'verified'
-                                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20'
-                                    : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20'
-                            }`}>
-                                {report.status === 'verified' ? (
-                                    <>
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500" />
-                                        Terverifikasi
-                                    </>
-                                ) : (
-                                    <>
-                                        <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500" />
-                                        Menunggu Konfirmasi
-                                    </>
-                                )}
-                            </span>
+                            {(() => {
+                                const cfg = REPORT_STATUS[report.status];
+                                if (!cfg) return null;
+                                const Icon = cfg.icon;
+                                return (
+                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${cfg.className}`}>
+                                        <Icon className={`w-3.5 h-3.5 ${cfg.iconClass}`} />
+                                        {cfg.label}
+                                    </span>
+                                );
+                            })()}
                         </div>
+
+                        <CommentSection reportId={id} />
                     </div>
                 )}
             </div>
