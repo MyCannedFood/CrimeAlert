@@ -4,11 +4,12 @@ import {
     Search, 
     Flame, 
     Sparkles, 
-    Filter, 
+    Globe2,
     ShieldAlert,
     MessageSquareDashed,
     LogIn 
 } from 'lucide-react';
+import Dropdown from '../../Components/Dropdown';
 import Footer from '../../Components/Footer';
 import ReportCard from './ReportCard';
 import CreateReportModal from './CreateReportModal';
@@ -171,21 +172,12 @@ export default function Report() {
 
                     {/* Filter Province & Sort Tabs */}
                     <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                        <div className="relative flex items-center">
-                            <select
-                                value={selectedProvince}
-                                onChange={(e) => setSelectedProvince(e.target.value)}
-                                className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 py-2 pl-3 pr-8 rounded-lg outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 appearance-none transition-colors"
-                            >
-                                <option value="">Semua Provinsi</option>
-                                <option value="DKI Jakarta">DKI Jakarta</option>
-                                <option value="Jawa Barat">Jawa Barat</option>
-                                <option value="Jawa Tengah">Jawa Tengah</option>
-                                <option value="Jawa Timur">Jawa Timur</option>
-                                <option value="Banten">Banten</option>
-                            </select>
-                            <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute right-2.5 pointer-events-none" />
-                        </div>
+                        <Dropdown
+                            icon={Globe2}
+                            value={selectedProvince || 'Semua Provinsi'}
+                            onChange={(v) => setSelectedProvince(v === 'Semua Provinsi' ? '' : v)}
+                            options={['Semua Provinsi', 'DKI Jakarta', 'Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Banten']}
+                        />
 
                         <div className="flex bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-lg border border-slate-200/60 dark:border-slate-700/60 text-xs font-medium transition-colors">
                             <button

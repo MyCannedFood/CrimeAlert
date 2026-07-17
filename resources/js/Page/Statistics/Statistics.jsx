@@ -173,14 +173,14 @@ export default function Statistics() {
                 {/* 1. Summary Cards (Row Layout) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {loading && Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm animate-pulse">
+                        <div key={i} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-xl shadow-sm animate-pulse">
                             <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-24 mb-4" />
                             <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-16 mb-3" />
                             <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-32" />
                         </div>
                     ))}
                     {!loading && summaryData.map((item, index) => (
-                        <div key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col justify-between">
+                        <div key={index} className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-xl shadow-sm flex flex-col justify-between">
                             <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">{item.title}</h3>
                             <div className="text-3xl font-bold text-gray-900 dark:text-white mb-3">{item.value}</div>
                             <div className={`flex items-center text-xs font-medium ${item.isPositive ? 'text-green-600' : 'text-red-500'}`}>
@@ -196,7 +196,7 @@ export default function Statistics() {
                 {/* 2. Charts Section (Row Layout) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Line Chart Area - merah (naik) / hijau (turun) */}
-                    <div className="col-span-1 lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col">
+                    <div className="col-span-1 lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-xl shadow-sm flex flex-col">
                         <div className="flex justify-between items-center mb-4">
                             <div>
                                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">Monthly Crime Trend</h3>
@@ -214,7 +214,7 @@ export default function Statistics() {
                             </div>
                         </div>
 
-                        <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full h-72" preserveAspectRatio="none">
+                        <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full h-72" preserveAspectRatio="xMidYMid meet">
                             {/* Grid horizontal + label sumbu Y */}
                             {yTicks.map((tick, i) => (
                                 <g key={i}>
@@ -286,7 +286,7 @@ export default function Statistics() {
                     </div>
 
                         {/* Donut Chart Area */}
-                    <div className="col-span-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm">
+                    <div className="col-span-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-xl shadow-sm">
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">Kategori Kejahatan</h3>
                         <p className="text-xs text-gray-500 dark:text-slate-400 mb-6">Distribusi per jenis</p>
 
@@ -336,7 +336,7 @@ export default function Statistics() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
 
                     {/* Top Provinces Bar Chart */}
-                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-xl shadow-sm flex flex-col">
                         <div className="flex items-center mb-1">
                             <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full mr-2">★</span>
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white">Top Provinsi Teraktif</h3>
@@ -377,7 +377,7 @@ export default function Statistics() {
                     </div>
 
                     {/* Map Section */}
-                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-none shadow-sm flex flex-col">
+                    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-6 rounded-xl shadow-sm flex flex-col">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <div className="flex items-center mb-1">

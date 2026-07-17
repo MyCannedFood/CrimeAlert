@@ -12,6 +12,7 @@ import About from './Page/About/About';
 import Report from './Page/Report/Report';
 import ReportDetail from './Page/Report/ReportDetail';
 import ArticlePage from './Page/News/ArticlePage';
+import SosButton from './Components/SosButton';
 
 function App() {
     return (
@@ -29,6 +30,7 @@ function App() {
                         <Route path="/tentang" element={<About />} />
                         <Route path="/berita/:id" element={<ArticlePage />} />
                     </Routes>
+                    <SosButton />
                 </BrowserRouter>
             </CrimeLocationProvider>
         </DarkModeProvider>

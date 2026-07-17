@@ -121,8 +121,6 @@ export default function HeroSection() {
                 margin: 0,
                 borderRadius: 0,
                 boxSizing: 'border-box',
-                fontFamily:
-                    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                 position: 'relative',
                 overflow: 'hidden',
             }}

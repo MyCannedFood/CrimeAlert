@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Globe2, ImageOff } from 'lucide-react';
+import Dropdown from '../../Components/Dropdown';
 import Footer from '../../Components/Footer';
 import { api } from '../../utils/api';
 
@@ -100,26 +102,17 @@ export default function News() {
                         </button>
                     </div>
 
-                    <div className="relative">
-                        <select
-                            value={selectedProvince}
-                            onChange={(e) => { setSelectedProvince(e.target.value); setActivePage(1); }}
-                            className="border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-slate-200 text-sm py-2 pl-4 pr-10 outline-none appearance-none rounded-md w-full md:w-48 cursor-pointer"
-                        >
-                            <option value="">Semua Provinsi</option>
-                            {provinces.map((p) => (
-                                <option key={p} value={p}>{p}</option>
-                            ))}
-                        </select>
-                        <svg className="w-4 h-4 text-gray-600 dark:text-slate-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
+                    <Dropdown
+                        icon={Globe2}
+                        value={selectedProvince || 'Semua Provinsi'}
+                        onChange={(v) => { setSelectedProvince(v === 'Semua Provinsi' ? '' : v); setActivePage(1); }}
+                        options={['Semua Provinsi', ...provinces]}
+                    />
                 </form>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
                     {loading && Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col rounded-none shadow-sm">
+                        <div key={i} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col rounded-xl shadow-sm">
                             <div className="bg-gray-200 dark:bg-slate-700 h-56 w-full animate-pulse" />
                             <div className="p-5 flex flex-col flex-grow">
                                 <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mb-2 w-3/4" />
@@ -137,11 +130,11 @@ export default function News() {
                         <a
                             key={item.id}
                             href={`/berita/${item.id}`}
-                            className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col rounded-none shadow-sm no-underline"
+                            className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col rounded-xl shadow-sm no-underline"
                             style={{ color: 'inherit' }}
                         >
-                            <div className="bg-[#9CA3AF] dark:bg-slate-700 h-56 w-full relative">
-                                <div className="absolute bottom-0 left-0 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-[#64748B] dark:text-slate-300">
+                            <div className="bg-[#9CA3AF] dark:bg-slate-700 h-56 w-full relative flex items-center justify-center">
+                                <div className="absolute bottom-0 left-0 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-[#64748B] dark:text-slate-300 z-10">
                                     {item.category}
                                 </div>
                                 {item.image_url ? (
@@ -151,7 +144,9 @@ export default function News() {
                                         className="w-full h-full object-cover"
                                         loading="lazy"
                                     />
-                                ) : null}
+                                ) : (
+                                    <ImageOff className="w-10 h-10 text-slate-500 dark:text-slate-500" />
+                                )}
                             </div>
                             <div className="p-5 flex flex-col flex-grow">
                                 <h3 className="font-bold text-[17px] leading-snug mb-6 text-gray-900 dark:text-slate-100">

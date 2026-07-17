@@ -6,7 +6,7 @@ import Footer from '../../Components/Footer';
 
 export default function Home() {
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
+        <div className="font-sans" style={{ minHeight: '100vh', background: 'var(--color-bg-secondary)' }}>
             <HeroSection />
 
             <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '0 1.25rem 3rem' }}>
