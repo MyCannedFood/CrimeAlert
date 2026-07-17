@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
 import {
     ArrowLeft,
     MapPin,
@@ -14,6 +16,14 @@ import {
 import Footer from '../../Components/Footer';
 import { api } from '../../utils/api';
 import { fetchReportImageUrl } from '../../utils/image';
+import { useDarkMode } from '../../utils/DarkModeProvider';
+
+const locationIcon = L.divIcon({
+  className: 'bg-transparent',
+  html: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#ef4444" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3" fill="#ffffff" stroke="#ef4444" stroke-width="2"/></svg>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 28],
+});
 
 function formatTime(dateStr) {
     if (!dateStr) return 'Baru saja';
@@ -26,6 +36,48 @@ function formatTime(dateStr) {
         hour: '2-digit',
         minute: '2-digit',
     });
+}
+
+function LocationMap({ lat, lng }) {
+  const { isDark } = useDarkMode();
+  const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  return (
+    <div className="mb-6 space-y-2">
+      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+        <MapPin className="w-3.5 h-3.5 text-red-500" />
+        Titik Kejadian
+      </p>
+      <a
+        href={gmapsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block h-52 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
+      >
+        <MapContainer center={[lat, lng]} zoom={15} className="w-full h-full" scrollWheelZoom={false} dragging={false} zoomControl={false} doubleClickZoom={false} touchZoom={false}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url={isDark ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
+          />
+          <Marker position={[lat, lng]} icon={locationIcon} />
+        </MapContainer>
+      </a>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+          {Number(lat).toFixed(6)}, {Number(lng).toFixed(6)}
+        </p>
+        <a
+          href={gmapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+        >
+          <MapPin className="w-3.5 h-3.5" />
+          Buka Rute
+        </a>
+      </div>
+    </div>
+  );
 }
 
 export default function ReportDetail() {
@@ -105,6 +157,11 @@ export default function ReportDetail() {
                                 <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium">
                                     <MapPin className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                                     {report.city ? `${report.city}, ` : ''}{report.province}
+                                    {report.latitude && report.longitude && (
+                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono ml-1">
+                                            ({Number(report.latitude).toFixed(4)}, {Number(report.longitude).toFixed(4)})
+                                        </span>
+                                    )}
                                 </span>
                             )}
                         </div>
@@ -126,6 +183,10 @@ export default function ReportDetail() {
                                 <ImageOff className="w-8 h-8 text-slate-400 dark:text-slate-500" />
                             </div>
                         ) : null}
+
+                        {report.latitude && report.longitude && (
+                            <LocationMap lat={report.latitude} lng={report.longitude} />
+                        )}
 
                         <div className="text-slate-700 dark:text-slate-300 leading-relaxed space-y-4 whitespace-pre-wrap mb-8 text-sm md:text-base">
                             {report.description}

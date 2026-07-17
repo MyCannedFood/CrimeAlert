@@ -87,6 +87,8 @@ export default function Report() {
                 category: newReportData?.category ?? null,
                 province: newReportData?.province ?? null,
                 city: newReportData?.city ?? null,
+                latitude: newReportData?.latitude ?? null,
+                longitude: newReportData?.longitude ?? null,
                 username: newReportData?.username ?? 'Anonim',
                 image_url: newReportData?.image_url ?? null,
             };

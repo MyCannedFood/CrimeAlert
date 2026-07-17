@@ -145,6 +145,11 @@ export default function ReportCard({ report, onVote, user, onDelete }) {
                                 <MapPin className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                                 {report.city ? `${report.city}, ` : ''}{report.province}
                             </span>
+                            {report.latitude && report.longitude && (
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                                    {Number(report.latitude).toFixed(4)}, {Number(report.longitude).toFixed(4)}
+                                </span>
+                            )}
                         </>
                     )}
                 </div>

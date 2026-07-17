@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
-
-import { FileText, X, Send, Upload } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import { FileText, X, Send, Upload, MapPin } from 'lucide-react';
 import { api } from '../../utils/api';
+import { useDarkMode } from '../../utils/DarkModeProvider';
+
+const locationIcon = L.divIcon({
+  className: 'bg-transparent',
+  html: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#ef4444" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3" fill="#ffffff" stroke="#ef4444" stroke-width="2"/></svg>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 28],
+});
 
 const INDONESIAN_PROVINCES = [
     'Aceh',
@@ -40,6 +49,55 @@ const INDONESIAN_PROVINCES = [
     'Papua Barat',
 ];
 
+function MiniLocationPicker({ lat, lng, onLocationChange, onReset }) {
+  const { isDark } = useDarkMode();
+  const [position, setPosition] = useState([lat, lng]);
+
+  useEffect(() => {
+    setPosition([lat, lng]);
+  }, [lat, lng]);
+
+  function LocationMarker() {
+    useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng;
+        setPosition([lat, lng]);
+        onLocationChange(lat, lng);
+      },
+    });
+    return position ? <Marker position={position} icon={locationIcon} /> : null;
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+        Titik Lokasi
+      </label>
+      <div className="relative h-48 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <MapContainer center={[lat, lng]} zoom={15} className="w-full h-full" scrollWheelZoom={true} dragging={true}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url={isDark ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
+          />
+          <LocationMarker />
+        </MapContainer>
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="absolute bottom-8 right-2 z-[1000] py-1 px-2.5 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-xs transition-colors backdrop-blur-sm cursor-pointer"
+          >
+            Reset Posisi
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-slate-400 dark:text-slate-500">
+        {Number(lat).toFixed(6)}, {Number(lng).toFixed(6)} — Klik peta untuk menyesuaikan titik
+      </p>
+    </div>
+  );
+}
+
 export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -55,8 +113,61 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
     const [error, setError] = useState('');
     const [categories, setCategories] = useState([]);
     const [provinces, setProvinces] = useState(INDONESIAN_PROVINCES);
+    const [location, setLocation] = useState(null);
+    const [locationAddress, setLocationAddress] = useState('');
+    const [locationError, setLocationError] = useState('');
+    const [latitude, setLatitude] = useState('');
+    const [longitude, setLongitude] = useState('');
+
+    const reverseGeocode = async (lat, lng) => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`
+            );
+            const data = await res.json();
+            setLocationAddress(data.display_name || '');
+            const addr = data.address || {};
+            const prov = addr.state || addr.region || '';
+            const matched = INDONESIAN_PROVINCES.find((p) => prov.includes(p));
+            if (matched) setProvince(matched);
+            const detectedCity = addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
+            if (detectedCity) setCity(detectedCity);
+        } catch {
+            // fallback
+        }
+    };
+
+    const loadLocation = () => {
+        setLocationError('');
+        setLocation(null);
+        setLocationAddress('');
+        setLatitude('');
+        setLongitude('');
+
+        if (!navigator.geolocation) {
+            setLocationError('Geolokasi tidak didukung browser Anda.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                setLocation({ lat, lng });
+                setLatitude(lat);
+                setLongitude(lng);
+                reverseGeocode(lat, lng);
+            },
+            () => setLocationError('Gagal mendapatkan lokasi. Izin lokasi mungkin ditolak.')
+        );
+    };
 
     // Kunci scroll pada body (layar belakang) selama modal terbuka
+    useEffect(() => {
+        if (!isOpen) return;
+        loadLocation();
+    }, [isOpen]);
+
     useEffect(() => {
         if (!isOpen) return;
 
@@ -165,6 +276,8 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
                 category: category || null,
                 province: province || null,
                 city: city.trim() || null,
+                latitude: latitude || null,
+                longitude: longitude || null,
                 username: showName ? (username.trim() || emailName || 'Anonim') : 'Anonim',
                 image_url: imageId,
                 upvotes: 1,
@@ -182,6 +295,11 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
             setImageFile(null);
             if (imagePreview) URL.revokeObjectURL(imagePreview);
             setImagePreview(null);
+            setLocation(null);
+            setLocationAddress('');
+            setLocationError('');
+            setLatitude('');
+            setLongitude('');
             onClose();
         } catch (err) {
             setError(err.message || 'Gagal mengirim laporan');
@@ -203,6 +321,11 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
         setUsername('');
         setShowName(true);
         setEmailName('');
+        setLocation(null);
+        setLocationAddress('');
+        setLocationError('');
+        setLatitude('');
+        setLongitude('');
         onClose();
     };
 
@@ -293,6 +416,52 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
                             className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white rounded-lg px-3.5 py-2 text-sm outline-none focus:border-blue-600 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                         />
                     </div>
+
+                    {location && (
+                        <div className="space-y-3">
+                            <MiniLocationPicker
+                                lat={latitude}
+                                lng={longitude}
+                                onLocationChange={(lat, lng) => {
+                                    setLatitude(lat);
+                                    setLongitude(lng);
+                                    reverseGeocode(lat, lng);
+                                }}
+                                onReset={() => {
+                                    setLatitude(location.lat);
+                                    setLongitude(location.lng);
+                                    reverseGeocode(location.lat, location.lng);
+                                }}
+                            />
+                            <div className="p-3 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20">
+                                <div className="flex items-start gap-2">
+                                    <MapPin className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                                    <div>
+                                        <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-0.5">Lokasi Terdeteksi</p>
+                                        <p className="text-xs text-green-600 dark:text-green-400 leading-relaxed line-clamp-2">
+                                            {locationAddress || `${location.lat}, ${location.lng}`}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {locationError && (
+                        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 space-y-3">
+                            <div className="flex items-start gap-2">
+                                <MapPin className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                                <p className="text-xs font-medium text-amber-700 dark:text-amber-300">{locationError}</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={loadLocation}
+                                className="w-full py-2 px-4 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors shadow-xs cursor-pointer"
+                            >
+                                Aktifkan Lokasi
+                            </button>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>

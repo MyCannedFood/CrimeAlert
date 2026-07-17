@@ -20,6 +20,8 @@ class CommunityReportController extends Controller
             'username' => 'nullable|string|max:255',
             'image_url' => 'nullable|string|max:255',
             'reporter_id' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $result = $supabase->insert('community_reports', $data, true);
