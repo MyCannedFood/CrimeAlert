@@ -42,7 +42,36 @@ export default function NearestNewsSection() {
     const [activePage, setActivePage] = useState(1);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { location: savedLocation } = useCrimeLocation();
+    const [locating, setLocating] = useState(false);
+    const { location: savedLocation, setLocation: setSavedLocation } = useCrimeLocation();
+
+    const requestLocation = () => {
+        if (!navigator.geolocation) return;
+        setLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10&addressdetails=1`,
+                        { headers: { 'Accept-Language': 'id-ID' } }
+                    );
+                    const data = await res.json();
+                    const city = data?.address?.city || data?.address?.town || data?.address?.village || data?.address?.suburb || 'Lokasi tidak tersedia';
+                    setSavedLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        city,
+                    });
+                } catch {
+                    // ignore
+                } finally {
+                    setLocating(false);
+                }
+            },
+            () => setLocating(false),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    };
 
     useEffect(() => {
         api.crimes.list()
@@ -50,6 +79,8 @@ export default function NearestNewsSection() {
             .catch(() => setItems([]))
             .finally(() => setLoading(false));
     }, []);
+
+    const MAX_DISTANCE_KM = 100;
 
     const crimesWithDistance = useMemo(() => {
         if (!savedLocation?.lat || !savedLocation?.lng) return items;
@@ -74,6 +105,7 @@ export default function NearestNewsSection() {
                 const distKm = hasCoords ? haversineKm(savedLocation.lat, savedLocation.lng, lat, lng) : Number.POSITIVE_INFINITY;
                 return { ...it, _distKm: distKm };
             })
+            .filter((it) => Number.isFinite(it._distKm) && it._distKm <= MAX_DISTANCE_KM)
             .sort((a, b) => a._distKm - b._distKm);
     }, [items, savedLocation]);
 
@@ -184,175 +216,224 @@ export default function NearestNewsSection() {
                     </a>
                 </div>
 
-                <div
-                    className="nearest-grid"
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: '2rem',
-                        paddingLeft: EDGE_PADDING,
-                        paddingRight: EDGE_PADDING,
-                    }}
-                >
-                    {loading &&
-                        Array.from({ length: 4 }).map((_, i) => (
-                            <div
-                                key={`skeleton-${i}`}
-                                style={{
-                                    background: 'var(--color-bg-card)',
-                                    border: '1px solid var(--color-card-border)',
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    boxSizing: 'border-box',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        height: '14rem',
-                                        width: '100%',
-                                        background: 'var(--color-skeleton)',
-                                    }}
-                                />
-                                <div style={{ padding: '1.25rem' }}>
-                                    <div
-                                        style={{
-                                            height: '1rem',
-                                            background: 'var(--color-skeleton)',
-                                            borderRadius: '4px',
-                                            marginBottom: '0.75rem',
-                                            width: '80%',
-                                        }}
-                                    />
-                                    <div
-                                        style={{
-                                            height: '1rem',
-                                            background: 'var(--color-skeleton)',
-                                            borderRadius: '4px',
-                                            width: '60%',
-                                        }}
-                                    />
-                                    <div
-                                        style={{
-                                            height: '0.75rem',
-                                            background: 'var(--color-skeleton)',
-                                            borderRadius: '4px',
-                                            marginTop: '1.5rem',
-                                            width: '40%',
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-
-                    {!loading && pageItems.length === 0 && (
-                        <div
+                {!loading && !savedLocation ? (
+                    <div
+                        style={{
+                            gridColumn: '1 / -1',
+                            padding: '4rem 2rem',
+                            textAlign: 'center',
+                            color: 'var(--color-text-muted)',
+                            background: 'var(--color-bg-card)',
+                            border: '1px solid var(--color-card-border)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            marginLeft: EDGE_PADDING,
+                            marginRight: EDGE_PADDING,
+                        }}
+                    >
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+                            Aktifkan lokasi untuk melihat berita terdekat
+                        </p>
+                        <p style={{ fontSize: '0.85rem', margin: 0 }}>
+                            Kami membutuhkan izin lokasi untuk menampilkan berita kriminal di sekitar Anda.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={requestLocation}
+                            disabled={locating}
                             style={{
-                                gridColumn: '1 / -1',
-                                padding: '2rem',
-                                color: 'var(--color-text-muted)',
-                                textAlign: 'center',
+                                marginTop: '0.5rem',
+                                padding: '0.75rem 2rem',
+                                background: '#2563EB',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '0.95rem',
+                                fontWeight: 600,
+                                cursor: locating ? 'not-allowed' : 'pointer',
+                                opacity: locating ? 0.7 : 1,
                             }}
                         >
-                            Belum ada data kriminal terdekat
-                        </div>
-                    )}
-
-                    {!loading &&
-                        pageItems.map((item, index) => (
-                            <a
-                                key={index}
-                                href={`/berita/${item.id}`}
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    textDecoration: 'none',
-                                    color: 'inherit',
-                                    background: 'var(--color-bg-card)',
-                                    border: '1px solid var(--color-card-border)',
-                                    borderRadius: 0,
-                                    overflow: 'hidden',
-                                    boxSizing: 'border-box',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                <div style={{ position: 'relative' }}>
-                                    {item.image_url ? (
-                                        <img
-                                            src={item.image_url}
-                                            alt={item.title}
-                                            style={{
-                                                height: '14rem',
-                                                width: '100%',
-                                                objectFit: 'cover',
-                                            }}
-                                        />
-                                    ) : (
-                                        <div
-                                            style={{
-                                                height: '14rem',
-                                                width: '100%',
-                                                background: 'var(--color-skeleton)',
-                                            }}
-                                        />
-                                    )}
-                                    <span
-                                        style={{
-                                            position: 'absolute',
-                                            left: 0,
-                                            bottom: 0,
-                                            background: 'var(--color-bg-card)',
-                                            padding: '0.375rem 0.75rem',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 600,
-                                            color: 'var(--color-text-secondary)',
-                                        }}
-                                    >
-                                        {item.category}
-                                    </span>
-                                </div>
-
+                            {locating ? 'Mendeteksi lokasi...' : 'Aktifkan Lokasi'}
+                        </button>
+                    </div>
+                ) : (
+                    <div
+                        className="nearest-grid"
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, 1fr)',
+                            gap: '2rem',
+                            paddingLeft: EDGE_PADDING,
+                            paddingRight: EDGE_PADDING,
+                        }}
+                    >
+                        {loading &&
+                            Array.from({ length: 4 }).map((_, i) => (
                                 <div
+                                    key={`skeleton-${i}`}
                                     style={{
-                                        padding: '1.25rem',
+                                        background: 'var(--color-bg-card)',
+                                        border: '1px solid var(--color-card-border)',
+                                        overflow: 'hidden',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        flexGrow: 1,
+                                        boxSizing: 'border-box',
                                     }}
                                 >
-                                    <h3
+                                    <div
                                         style={{
-                                            fontSize: '17px',
-                                            fontWeight: 700,
-                                            color: 'var(--color-text)',
-                                            margin: '0 0 1.5rem 0',
-                                            lineHeight: 1.2,
+                                            height: '14rem',
+                                            width: '100%',
+                                            background: 'var(--color-skeleton)',
                                         }}
-                                    >
-                                        {item.title}
-                                    </h3>
+                                    />
+                                    <div style={{ padding: '1.25rem' }}>
+                                        <div
+                                            style={{
+                                                height: '1rem',
+                                                background: 'var(--color-skeleton)',
+                                                borderRadius: '4px',
+                                                marginBottom: '0.75rem',
+                                                width: '80%',
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                height: '1rem',
+                                                background: 'var(--color-skeleton)',
+                                                borderRadius: '4px',
+                                                width: '60%',
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                height: '0.75rem',
+                                                background: 'var(--color-skeleton)',
+                                                borderRadius: '4px',
+                                                marginTop: '1.5rem',
+                                                width: '40%',
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+
+                        {!loading && pageItems.length === 0 && (
+                            <div
+                                style={{
+                                    gridColumn: '1 / -1',
+                                    padding: '2rem',
+                                    color: 'var(--color-text-muted)',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                Belum ada data kriminal terdekat
+                            </div>
+                        )}
+
+                        {!loading &&
+                            pageItems.map((item, index) => (
+                                <a
+                                    key={index}
+                                    href={`/berita/${item.id}`}
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        textDecoration: 'none',
+                                        color: 'inherit',
+                                        background: 'var(--color-bg-card)',
+                                        border: '1px solid var(--color-card-border)',
+                                        borderRadius: 0,
+                                        overflow: 'hidden',
+                                        boxSizing: 'border-box',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    <div style={{ position: 'relative' }}>
+                                        {item.image_url ? (
+                                            <img
+                                                src={item.image_url}
+                                                alt={item.title}
+                                                style={{
+                                                    height: '14rem',
+                                                    width: '100%',
+                                                    objectFit: 'cover',
+                                                }}
+                                            />
+                                        ) : (
+                                            <div
+                                                style={{
+                                                    height: '14rem',
+                                                    width: '100%',
+                                                    background: 'var(--color-skeleton)',
+                                                }}
+                                            />
+                                        )}
+                                        <span
+                                            style={{
+                                                position: 'absolute',
+                                                left: 0,
+                                                bottom: 0,
+                                                background: 'var(--color-bg-card)',
+                                                padding: '0.375rem 0.75rem',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                color: 'var(--color-text-secondary)',
+                                            }}
+                                        >
+                                            {item.category}
+                                        </span>
+                                    </div>
 
                                     <div
                                         style={{
-                                            marginTop: 'auto',
+                                            padding: '1.25rem',
                                             display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            fontSize: '0.75rem',
-                                            color: '#9CA3AF',
-                                            fontWeight: 500,
+                                            flexDirection: 'column',
+                                            flexGrow: 1,
                                         }}
                                     >
-                                        <span>{item.source || 'Sumber tidak diketahui'}</span>
-                                        <span>{timeAgo(item.date)}</span>
-                                    </div>
-                                </div>
-                            </a>
-                        ))}
-                </div>
+                                        <h3
+                                            style={{
+                                                fontSize: '17px',
+                                                fontWeight: 700,
+                                                color: 'var(--color-text)',
+                                                margin: '0 0 1.5rem 0',
+                                                lineHeight: 1.2,
+                                            }}
+                                        >
+                                            {item.title}
+                                        </h3>
 
-                {!loading && items.length > ITEMS_PER_PAGE && (
+                                        <div
+                                            style={{
+                                                marginTop: 'auto',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                fontSize: '0.75rem',
+                                                color: '#9CA3AF',
+                                                fontWeight: 500,
+                                            }}
+                                        >
+                                            <span>{item.source || 'Sumber tidak diketahui'}</span>
+                                            <span>{timeAgo(item.date)}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            ))}
+                    </div>
+                )}
+
+                {!loading && savedLocation && items.length > ITEMS_PER_PAGE && (
                     <div
                         style={{
                             display: 'flex',
