@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -10,12 +10,17 @@ import {
     Clock,
     AlertCircle,
     ThumbsUp,
-    ImageOff
+    ImageOff,
+    MoreHorizontal,
+    Pencil,
+    Trash2
 } from 'lucide-react';
 import Footer from '../../Components/Footer';
 import { api } from '../../utils/api';
+import { supabase } from '../../utils/supabase';
 import { fetchReportImageUrl } from '../../utils/image';
 import CommentSection from './CommentSection';
+import CreateReportModal from './CreateReportModal';
 import { useDarkMode } from '../../utils/DarkModeProvider';
 import { REPORT_STATUS } from '../../utils/status';
 
@@ -83,10 +88,27 @@ function LocationMap({ lat, lng }) {
 
 export default function ReportDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
+    const [user, setUser] = useState(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editReport, setEditReport] = useState(null);
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        if (!supabase) return;
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
+        });
+        const { data: authData } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+        return () => authData?.subscription.unsubscribe();
+    }, []);
 
     useEffect(() => {
         setLoading(true);
@@ -105,6 +127,59 @@ export default function ReportDetail() {
         }
     }, [report?.image_url]);
 
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const isOwner = !!user?.id;
+
+    const handleEdit = () => {
+        setMenuOpen(false);
+        setEditReport(report);
+        setEditModalOpen(true);
+    };
+
+    const handleEditReport = async (id, reportData) => {
+        try {
+            const updated = await api.reports.update(id, reportData);
+            if (updated) {
+                setReport((prev) => ({ ...prev, ...updated }));
+                setEditModalOpen(false);
+                setEditReport(null);
+            } else {
+                setError('Gagal memperbarui laporan.');
+            }
+        } catch (err) {
+            console.error('Edit report failed:', err);
+            setError(err?.message || 'Gagal memperbarui laporan.');
+        }
+    };
+
+    const handleDelete = async () => {
+        setMenuOpen(false);
+        const confirmed = confirm('Apakah Anda yakin ingin menghapus laporan ini? Tindakan ini tidak dapat dibatalkan.');
+        if (!confirmed) return;
+        try {
+            const success = await api.reports.destroy(id);
+            if (success) {
+                navigate('/laporan');
+            } else {
+                setError('Gagal menghapus laporan. Coba lagi.');
+            }
+        } catch (err) {
+            console.error('Delete report failed:', err);
+            setError(err?.message || 'Gagal menghapus laporan.');
+        }
+    };
+
+    const handleCreateReport = async () => {};
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans flex flex-col transition-colors duration-300">
             <div className="py-4 px-6 md:px-12 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs transition-colors duration-300">
@@ -113,7 +188,38 @@ export default function ReportDetail() {
                         <ArrowLeft className="w-4 h-4" />
                         Semua Laporan Warga
                     </Link>
-                    <span className="text-xs font-mono text-slate-400 dark:text-slate-500">ID: #{id}</span>
+                    <div className="flex items-center gap-3">
+                        {isOwner && (
+                            <div className="relative" ref={menuRef}>
+                                <button
+                                    onClick={() => setMenuOpen(!menuOpen)}
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    aria-label="Menu"
+                                >
+                                    <MoreHorizontal className="w-5 h-5" />
+                                </button>
+                                {menuOpen && (
+                                    <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-20">
+                                        <button
+                                            onClick={handleEdit}
+                                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer font-medium"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                            Edit Laporan
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer font-medium"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Hapus Laporan
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <span className="text-xs font-mono text-slate-400 dark:text-slate-500">ID: #{id}</span>
+                    </div>
                 </div>
             </div>
 
@@ -126,7 +232,7 @@ export default function ReportDetail() {
                     </div>
                 )}
 
-                {error && (
+                {error && !report && (
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 p-8 rounded-xl text-center space-y-3">
                         <AlertCircle className="w-8 h-8 text-rose-500 dark:text-rose-400 mx-auto" />
                         <p className="font-semibold text-slate-800 dark:text-slate-200">{error}</p>
@@ -138,6 +244,11 @@ export default function ReportDetail() {
 
                 {!loading && report && (
                     <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-6 md:p-8 shadow-xs transition-colors duration-300">
+                        {error && (
+                            <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-xs rounded-lg border border-rose-200/80 dark:border-rose-500/20 font-medium">
+                                {error}
+                            </div>
+                        )}
                         <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
                             <span className="inline-flex items-center gap-1 font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md">
                                 <User className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
@@ -217,6 +328,14 @@ export default function ReportDetail() {
                 )}
             </div>
 
+            <CreateReportModal
+                isOpen={editModalOpen}
+                onClose={() => { setEditModalOpen(false); setEditReport(null); }}
+                onSubmit={handleCreateReport}
+                onEdit={handleEditReport}
+                editReport={editReport}
+                user={user}
+            />
             <Footer />
         </div>
     );

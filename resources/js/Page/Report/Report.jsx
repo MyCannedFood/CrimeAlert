@@ -24,6 +24,7 @@ export default function Report() {
     const [selectedProvince, setSelectedProvince] = useState('');
     const [sort, setSort] = useState('new');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editReport, setEditReport] = useState(null);
     const [user, setUser] = useState(null);
     const [authAlert, setAuthAlert] = useState('');
 
@@ -52,8 +53,28 @@ export default function Report() {
 
     const openCreateModal = () => {
         setAuthAlert('');
+        setEditReport(null);
         if (requireAuth()) {
             setIsModalOpen(true);
+        }
+    };
+
+    const handleOpenEdit = (report) => {
+        setEditReport(report);
+        setIsModalOpen(true);
+    };
+
+    const handleEditReport = async (id, reportData) => {
+        try {
+            const updated = await api.reports.update(id, reportData);
+            if (updated) {
+                setReports((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated } : r)));
+            } else {
+                setAuthAlert('Gagal memperbarui laporan.');
+            }
+        } catch (err) {
+            console.error('Edit report failed:', err);
+            setAuthAlert(err?.message || 'Gagal memperbarui laporan.');
         }
     };
 
@@ -261,16 +282,18 @@ export default function Report() {
                     )}
 
                     {!loading && filteredReports.map((report) => (
-                        <ReportCard key={report.id} report={report} onVote={handleVote} user={user} onDelete={handleDeleteReport} />
+                        <ReportCard key={report.id} report={report} onVote={handleVote} user={user} onDelete={handleDeleteReport} onEdit={handleOpenEdit} />
                     ))}
                 </div>
             </div>
 
-            {/* Create Report Modal */}
+            {/* Create/Edit Report Modal */}
             <CreateReportModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => { setIsModalOpen(false); setEditReport(null); }}
                 onSubmit={handleCreateReport}
+                onEdit={handleEditReport}
+                editReport={editReport}
                 user={user}
             />
 

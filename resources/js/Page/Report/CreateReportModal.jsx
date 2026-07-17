@@ -98,7 +98,7 @@ function MiniLocationPicker({ lat, lng, onLocationChange, onReset }) {
   );
 }
 
-export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
+export default function CreateReportModal({ isOpen, onClose, onSubmit, onEdit, editReport, user }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
@@ -162,11 +162,32 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
         );
     };
 
-    // Kunci scroll pada body (layar belakang) selama modal terbuka
+    const isEdit = !!editReport;
+
     useEffect(() => {
         if (!isOpen) return;
-        loadLocation();
-    }, [isOpen]);
+        if (editReport) {
+            setTitle(editReport.title || '');
+            setDescription(editReport.description || '');
+            setCategory(editReport.category || '');
+            setProvince(editReport.province || '');
+            setCity(editReport.city || '');
+            setUsername(editReport.username || '');
+            setShowName(!!editReport.username && editReport.username !== 'Anonim');
+            setLatitude(editReport.latitude || '');
+            setLongitude(editReport.longitude || '');
+            if (editReport.latitude && editReport.longitude) {
+                setLocation({ lat: Number(editReport.latitude), lng: Number(editReport.longitude) });
+                reverseGeocode(Number(editReport.latitude), Number(editReport.longitude));
+            }
+            if (editReport.image_url) {
+                setImageFile(null);
+                setImagePreview(null);
+            }
+        } else {
+            loadLocation();
+        }
+    }, [isOpen, editReport]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -251,7 +272,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
             setError('Judul dan deskripsi wajib diisi');
             return;
         }
-        if (!imageFile) {
+        if (!isEdit && !imageFile) {
             setError('Gambar kejadian wajib dilampirkan');
             return;
         }
@@ -260,7 +281,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
         setError('');
 
         try {
-            let imageId = null;
+            let imageId = isEdit ? editReport?.image_url : null;
             if (imageFile) {
                 imageId = await api.reports.image.upload(imageFile);
                 if (!imageId) {
@@ -270,7 +291,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
                 }
             }
 
-            await onSubmit({
+            const payload = {
                 title: title.trim(),
                 description: description.trim(),
                 category: category || null,
@@ -280,11 +301,19 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
                 longitude: longitude || null,
                 username: showName ? (username.trim() || emailName || 'Anonim') : 'Anonim',
                 image_url: imageId,
-                upvotes: 1,
-                downvotes: 0,
-                status: 'pending',
-                created_at: new Date().toISOString(),
-            });
+            };
+
+            if (isEdit) {
+                await onEdit(editReport.id, payload);
+            } else {
+                await onSubmit({
+                    ...payload,
+                    upvotes: 1,
+                    downvotes: 0,
+                    status: 'pending',
+                    created_at: new Date().toISOString(),
+                });
+            }
 
             setTitle('');
             setDescription('');
@@ -335,7 +364,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 pt-6 pb-4 shrink-0">
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <FileText className="w-5 h-5 text-blue-600 dark:text-blue-500" />
-                        Buat Laporan Kejahatan
+                        {isEdit ? 'Edit Laporan Kejahatan' : 'Buat Laporan Kejahatan'}
                     </h2>
                     <button
                         onClick={handleClose}
@@ -512,10 +541,10 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                            Gambar Kejadian *
+                            Gambar Kejadian {!isEdit ? '*' : '(Opsional)'}
                         </label>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
-                            Lampirkan bukti pendukung seperti foto barang curian, kendaraan, plat nomor, STNK, atau dokumen kepemilikan lainnya.
+                            {isEdit ? 'Biarkan kosong jika tidak ingin mengubah gambar.' : 'Lampirkan bukti pendukung seperti foto barang curian, kendaraan, plat nomor, STNK, atau dokumen kepemilikan lainnya.'}
                         </p>
                         <div
                             onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
@@ -606,7 +635,7 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
                             className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 rounded-lg transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
                         >
                             <Send className="w-4 h-4" />
-                            {submitting ? 'Mengirim...' : 'Kirim Laporan'}
+                            {submitting ? 'Menyimpan...' : (isEdit ? 'Simpan Perubahan' : 'Kirim Laporan')}
                         </button>
                     </div>
                 </form>

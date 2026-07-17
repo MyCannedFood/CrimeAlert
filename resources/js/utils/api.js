@@ -262,27 +262,19 @@ export const api = {
       },
     },
     list: async (params = {}) => {
-      if (!supabase) return []
-      let query = supabase.from('community_reports').select('*')
-      if (params.category) query = query.eq('category', params.category)
-      if (params.province) query = query.eq('province', params.province)
-      if (params.search) query = query.ilike('title', `%${params.search}%`)
-
-      if (params.sort === 'top') {
-        query = query.order('upvotes', { ascending: false })
-      } else {
-        query = query.order('created_at', { ascending: false })
-      }
-
-      const { data, error } = await query
-      if (error) { console.error(error); return [] }
-      return data || []
+      const query = new URLSearchParams()
+      if (params.province) query.set('province', params.province)
+      if (params.search) query.set('search', params.search)
+      if (params.sort) query.set('sort', params.sort)
+      const qs = query.toString()
+      const response = await fetch(`/api/community-reports${qs ? `?${qs}` : ''}`)
+      if (!response.ok) return []
+      return await response.json()
     },
     show: async (id) => {
-      if (!supabase) return null
-      const { data, error } = await supabase.from('community_reports').select('*').eq('id', id).single()
-      if (error || !data) return null
-      return data
+      const response = await fetch(`/api/community-reports/${id}`)
+      if (!response.ok) return null
+      return await response.json()
     },
     create: async (reportData) => {
       if (!supabase) return null
@@ -302,6 +294,24 @@ export const api = {
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
         throw new Error(err.error || 'Gagal menyimpan laporan')
+      }
+      return await response.json()
+    },
+    update: async (id, reportData) => {
+      if (!supabase) return null
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return null
+      const response = await fetch(`/api/community-reports/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(reportData),
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || 'Gagal memperbarui laporan')
       }
       return await response.json()
     },
@@ -358,6 +368,20 @@ export const api = {
       }
       const { data, error } = await supabase.from('report_comments').insert([payload]).select()
       if (error) { console.error('Comment create error:', error); throw new Error(error.message) }
+      return data?.[0] || null
+    },
+    update: async (commentId, content) => {
+      if (!supabase) throw new Error('Supabase not available')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) throw new Error('Anda harus masuk untuk mengedit komentar.')
+      const { data, error } = await supabase
+        .from('report_comments')
+        .update({ content })
+        .eq('id', commentId)
+        .eq('user_id', session.user.id)
+        .is('deleted_at', null)
+        .select()
+      if (error) { console.error('Comment update error:', error); throw new Error(error.message) }
       return data?.[0] || null
     },
     destroy: async (commentId) => {

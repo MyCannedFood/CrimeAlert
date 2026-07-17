@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Reply, Trash2, Clock } from 'lucide-react';
+import { MessageSquare, Reply, Trash2, Clock, Pencil } from 'lucide-react';
 import { api } from '../../utils/api';
 import { supabase } from '../../utils/supabase';
 
@@ -16,10 +16,11 @@ function formatTime(dateStr) {
   return date.toLocaleDateString('id-ID');
 }
 
-function CommentForm({ reportId, parentId, onSubmit, onCancel, placeholder }) {
-  const [content, setContent] = useState('');
+function CommentForm({ reportId, parentId, commentId, initialContent = '', onSubmit, onCancel, placeholder, mode = 'create' }) {
+  const [content, setContent] = useState(initialContent);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const isEdit = mode === 'edit';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +28,12 @@ function CommentForm({ reportId, parentId, onSubmit, onCancel, placeholder }) {
     setSubmitting(true);
     setError('');
     try {
-      await api.comments.create(reportId, content.trim(), parentId);
-      setContent('');
+      if (isEdit) {
+        await api.comments.update(commentId, content.trim());
+      } else {
+        await api.comments.create(reportId, content.trim(), parentId);
+        setContent('');
+      }
       if (onSubmit) onSubmit();
     } catch (err) {
       setError(err.message);
@@ -65,7 +70,7 @@ function CommentForm({ reportId, parentId, onSubmit, onCancel, placeholder }) {
           disabled={submitting || !content.trim()}
           className="px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 rounded-lg transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
         >
-          {submitting ? 'Mengirim...' : 'Kirim'}
+          {submitting ? (isEdit ? 'Menyimpan...' : 'Mengirim...') : (isEdit ? 'Simpan' : 'Kirim')}
         </button>
       </div>
     </form>
@@ -74,8 +79,10 @@ function CommentForm({ reportId, parentId, onSubmit, onCancel, placeholder }) {
 
 function CommentThread({ comment, reportId, children, onRefresh, currentUserId }) {
   const [showReply, setShowReply] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const depth = comment._depth || 0;
   const isDeleted = !!comment.deleted_at;
+  const isOwner = currentUserId && comment.user_id === currentUserId;
 
   const handleDelete = async () => {
     if (!confirm('Hapus komentar ini?')) return;
@@ -103,23 +110,42 @@ function CommentThread({ comment, reportId, children, onRefresh, currentUserId }
           <p className="text-sm text-slate-400 dark:text-slate-500 italic">
             Komentar ini telah dihapus.
           </p>
+        ) : isEditing ? (
+          <div className="mt-1">
+            <CommentForm
+              mode="edit"
+              commentId={comment.id}
+              initialContent={comment.content}
+              onSubmit={() => { setIsEditing(false); if (onRefresh) onRefresh(); }}
+              onCancel={() => setIsEditing(false)}
+            />
+          </div>
         ) : (
           <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
             {comment.content}
           </p>
         )}
-        {!isDeleted && (
+        {!isDeleted && !isEditing && (
           <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             {currentUserId && (
               <button
-                onClick={() => setShowReply(!showReply)}
+                onClick={() => { setShowReply(!showReply); setIsEditing(false); }}
                 className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
               >
                 <Reply className="w-3 h-3" />
                 Balas
               </button>
             )}
-            {currentUserId && comment.user_id === currentUserId && (
+            {isOwner && (
+              <button
+                onClick={() => { setIsEditing(true); setShowReply(false); }}
+                className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
+            )}
+            {isOwner && (
               <button
                 onClick={handleDelete}
                 className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
@@ -131,7 +157,7 @@ function CommentThread({ comment, reportId, children, onRefresh, currentUserId }
           </div>
         )}
 
-        {showReply && (
+        {showReply && !isEditing && (
           <div className="mt-2">
             <CommentForm
               reportId={reportId}

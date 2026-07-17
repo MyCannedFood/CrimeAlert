@@ -46,6 +46,43 @@ class CommentController extends Controller
         return response()->json($result, 201);
     }
 
+    public function update(Request $request, string $id, SupabaseService $supabase)
+    {
+        $authUser = $request->input('auth_user');
+        if (!$authUser) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $data = $request->validate([
+            'content' => 'required|string|max:1000',
+        ]);
+
+        $comments = $supabase->select('report_comments', ['id' => "eq.{$id}"], true);
+        $comment = $comments[0] ?? null;
+
+        if (!$comment) {
+            return response()->json(['error' => 'Komentar tidak ditemukan'], 404);
+        }
+
+        if (($comment['user_id'] ?? '') !== $authUser['id']) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if (!empty($comment['deleted_at'])) {
+            return response()->json(['error' => 'Komentar sudah dihapus'], 400);
+        }
+
+        $result = $supabase->update('report_comments', [
+            'content' => $data['content'],
+        ], 'id', $id, true);
+
+        if (!$result) {
+            return response()->json(['error' => 'Gagal mengedit komentar'], 500);
+        }
+
+        return response()->json($result);
+    }
+
     public function destroy(string $id, Request $request, SupabaseService $supabase)
     {
         $authUser = $request->input('auth_user');

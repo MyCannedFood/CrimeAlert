@@ -9,11 +9,15 @@ use App\Http\Controllers\Api\CommentController;
 Route::post('/images', [ReportImageController::class, 'upload']);
 Route::get('/images/{filename}', [ReportImageController::class, 'show']);
 
-Route::post('/community-reports', [CommunityReportController::class, 'store']);
+Route::get('/community-reports', [CommunityReportController::class, 'index']);
+Route::get('/community-reports/{id}', [CommunityReportController::class, 'show']);
+Route::post('/community-reports', [CommunityReportController::class, 'store'])->middleware('auth.supabase');
+Route::patch('/community-reports/{id}', [CommunityReportController::class, 'update'])->middleware('auth.supabase');
 Route::delete('/community-reports/{id}', [CommunityReportController::class, 'destroy'])->middleware('auth.supabase');
 
 Route::get('/community-reports/{id}/comments', [CommentController::class, 'index']);
 Route::post('/community-reports/{id}/comments', [CommentController::class, 'store'])->middleware('auth.supabase');
+Route::patch('/comments/{id}', [CommentController::class, 'update'])->middleware('auth.supabase');
 Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->middleware('auth.supabase');
 
 Route::any('/{any}', function ($any) {
