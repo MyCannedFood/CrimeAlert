@@ -1,28 +1,43 @@
 import React, { useState, useEffect } from 'react';
 
-import { FileText, X, Send, Upload, Image as ImageIcon } from 'lucide-react';
+import { FileText, X, Send, Upload } from 'lucide-react';
 import { api } from '../../utils/api';
 
-const FALLBACK_CATEGORIES = [
-    'Pencurian / Begal',
-    'Perampokan / Penjarahan',
-    'Tindak Kekerasan',
-    'Penipuan / Cybercrime',
-    'Narkoba / Miras',
-    'Tindakan Asusila',
-    'Lainnya',
-];
-
-const FALLBACK_PROVINCES = [
+const INDONESIAN_PROVINCES = [
+    'Aceh',
+    'Sumatera Utara',
+    'Sumatera Barat',
+    'Riau',
+    'Kepulauan Riau',
+    'Jambi',
+    'Sumatera Selatan',
+    'Bangka Belitung',
+    'Bengkulu',
+    'Lampung',
     'DKI Jakarta',
+    'Banten',
     'Jawa Barat',
     'Jawa Tengah',
-    'Jawa Timur',
-    'Banten',
     'DI Yogyakarta',
-    'Sumatera Utara',
+    'Jawa Timur',
     'Bali',
-    'Lainnya',
+    'Nusa Tenggara Barat',
+    'Nusa Tenggara Timur',
+    'Kalimantan Barat',
+    'Kalimantan Tengah',
+    'Kalimantan Selatan',
+    'Kalimantan Timur',
+    'Kalimantan Utara',
+    'Sulawesi Utara',
+    'Sulawesi Tengah',
+    'Sulawesi Selatan',
+    'Sulawesi Tenggara',
+    'Gorontalo',
+    'Sulawesi Barat',
+    'Maluku',
+    'Maluku Utara',
+    'Papua',
+    'Papua Barat',
 ];
 
 export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
@@ -38,8 +53,8 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
     const [imagePreview, setImagePreview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
-    const [provinces, setProvinces] = useState(FALLBACK_PROVINCES);
+    const [categories, setCategories] = useState([]);
+    const [provinces, setProvinces] = useState(INDONESIAN_PROVINCES);
 
     // Kunci scroll pada body (layar belakang) selama modal terbuka
     useEffect(() => {
@@ -67,9 +82,6 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
         if (!isOpen) return;
         api.getCategoryOptions().then((cats) => {
             if (cats.length > 0) setCategories(cats);
-        });
-        api.getProvinceOptions().then((provs) => {
-            if (provs.length > 0) setProvinces(provs);
         });
 
         const fullNameFromMeta =
@@ -126,6 +138,10 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
         e.preventDefault();
         if (!title.trim() || !description.trim()) {
             setError('Judul dan deskripsi wajib diisi');
+            return;
+        }
+        if (!imageFile) {
+            setError('Gambar kejadian wajib dilampirkan');
             return;
         }
 
@@ -327,51 +343,68 @@ export default function CreateReportModal({ isOpen, onClose, onSubmit, user }) {
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                            Gambar Kejadian (Opsional)
+                            Gambar Kejadian *
                         </label>
-                        <div className="flex items-center gap-3">
-                            <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer transition-colors text-sm font-medium border border-slate-200/60 dark:border-slate-700/50">
-                                <Upload className="w-4 h-4" />
-                                {imageFile ? 'Ganti Gambar' : 'Pilih Gambar'}
-                                <input
-                                    type="file"
-                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                    onChange={handleImageChange}
-                                    className="hidden"
-                                />
-                            </label>
-                            {imageFile && (
-                                <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
-                                    {imageFile.name}
-                                </span>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
+                            Lampirkan bukti pendukung seperti foto barang curian, kendaraan, plat nomor, STNK, atau dokumen kepemilikan lainnya.
+                        </p>
+                        <div
+                            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const file = e.dataTransfer.files?.[0];
+                                if (!file) return;
+                                if (!['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'].includes(file.type)) {
+                                    setError('Format gambar tidak didukung. Gunakan JPG, PNG, GIF, atau WebP.');
+                                    return;
+                                }
+                                if (file.size > 5 * 1024 * 1024) {
+                                    setError('Ukuran gambar maksimal 5MB.');
+                                    return;
+                                }
+                                setImageFile(file);
+                                setImagePreview(URL.createObjectURL(file));
+                                setError('');
+                            }}
+                            onClick={() => document.getElementById('image-upload-input')?.click()}
+                            className="relative cursor-pointer"
+                        >
+                            <input
+                                id="image-upload-input"
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
+                            {imagePreview ? (
+                                <div className="relative w-full h-32 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            URL.revokeObjectURL(imagePreview);
+                                            setImagePreview(null);
+                                            setImageFile(null);
+                                        }}
+                                        className="absolute top-1.5 right-1.5 bg-slate-900/60 hover:bg-slate-900/80 text-white p-1 rounded-full transition-colors cursor-pointer"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="w-full h-24 rounded-lg bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 flex flex-col items-center justify-center gap-1 text-xs text-slate-400 dark:text-slate-500 transition-colors">
+                                    <Upload className="w-5 h-5" />
+                                    <span>Seret &amp; lepas gambar di sini, atau klik untuk memilih</span>
+                                    <span className="text-[10px]">Maks. 5MB — JPG, PNG, GIF, WebP</span>
+                                </div>
                             )}
                         </div>
-                        {imagePreview && (
-                            <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                <img
-                                    src={imagePreview}
-                                    alt="Preview"
-                                    className="w-full h-full object-cover"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        URL.revokeObjectURL(imagePreview);
-                                        setImagePreview(null);
-                                        setImageFile(null);
-                                    }}
-                                    className="absolute top-1.5 right-1.5 bg-slate-900/60 hover:bg-slate-900/80 text-white p-1 rounded-full transition-colors cursor-pointer"
-                                >
-                                    <X className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-                        )}
-                        {!imageFile && (
-                            <div className="mt-2 w-full h-20 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-                                <ImageIcon className="w-4 h-4" />
-                                Maks. 5MB — JPG, PNG, GIF, WebP
-                            </div>
-                        )}
                     </div>
 
                     <div>

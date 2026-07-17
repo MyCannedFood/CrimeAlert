@@ -20,7 +20,7 @@ class ScrapeNews extends Command
         $this->info("Mengirim perintah scraping ke: {$url}");
 
         try {
-            $response = Http::timeout(120)->post($url);
+            $response = Http::timeout(300)->post($url);
 
             if (!$response->successful()) {
                 $this->error("Gagal: HTTP {$response->status()} - {$response->body()}");

@@ -269,7 +269,7 @@ export default function MapPage() {
   }, [CITY_OPTIONS, selectedCity]);
 
   const handleViewNews = (crime) => {
-    navigate(`/news?query=${encodeURIComponent(crime.title)}`);
+    navigate(`/berita/${crime.id}`);
   };
 
   return (
