@@ -104,20 +104,6 @@ export default function Navbar() {
         };
 
         forceHideBanner();
-        const interval = setInterval(forceHideBanner, 200);
-
-        const observer = new MutationObserver(forceHideBanner);
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style', 'class'],
-            childList: true,
-            subtree: true,
-        });
-
-        return () => {
-            clearInterval(interval);
-            observer.disconnect();
-        };
     }, []);
 
     const setGoogTransCookie = (value) => {
