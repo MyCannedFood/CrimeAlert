@@ -106,7 +106,13 @@ export default function NearestNewsSection() {
                 return { ...it, _distKm: distKm };
             })
             .filter((it) => Number.isFinite(it._distKm) && it._distKm <= MAX_DISTANCE_KM)
-            .sort((a, b) => a._distKm - b._distKm);
+            .sort((a, b) => {
+                const distDiff = a._distKm - b._distKm;
+                if (distDiff !== 0) return distDiff;
+                const ad = new Date(a.published || a.date || 0).getTime();
+                const bd = new Date(b.published || b.date || 0).getTime();
+                return bd - ad;
+            });
     }, [items, savedLocation]);
 
     const nearestItems = crimesWithDistance;

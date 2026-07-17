@@ -13,10 +13,10 @@ export default function Home() {
                 {/* Use wrappers for spacing; full-bleed dividers inserted between sections */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }} className="home-sections">
                     <div style={{ padding: '2rem 0' }}>
-                        <LatestNewsSection />
+                        <RiskLevelSection />
                     </div>
 
-                    {/* Full-bleed divider between LatestNews and RiskLevel */}
+                    {/* Full-bleed divider between RiskLevel and LatestNews */}
                     <div
                         style={{
                             width: '100vw',
@@ -29,10 +29,10 @@ export default function Home() {
                     />
 
                     <div style={{ padding: '2rem 0' }}>
-                        <RiskLevelSection />
+                        <LatestNewsSection />
                     </div>
 
-                    {/* Full-bleed divider between RiskLevel and NearestNews */}
+                    {/* Full-bleed divider between LatestNews and NearestNews */}
                     <div
                         style={{
                             width: '100vw',
